@@ -49,18 +49,18 @@
 
 | Token     | Meaning                     |      C      | JavaScript |
 | --------- | --------------------------- | ----------- | ---------- |
-| LP        | Left parenthesis symbol     | (           | (          |
-| RP        | Right parenthesis symbol    | )           | )          |
-| LC        | Left curly bracket symbol   | {           | {          |
-| RC        | Right curly bracket symbol  | }           | }          |
-| LB        | Left square bracket symbol  | [           | [          |
-| RB        | Right square bracket symbol | ]           | ]          |
-| COMA      | Coma symbol                 | ,           | ,          |
-| SEMICOLON | Semicolon symbol            | ;           | ;          |
-| COLON     | Colon symbol                | :           | :          |
-| QM        | Question mark symbol        | ?           | ?          |
-| SQ        | Single quote symbol         | '           | '          |
-| DQ        | Double quote symbol         | "           | "          |
+| LP        | Left parenthesis            | (           | (          |
+| RP        | Right parenthesis           | )           | )          |
+| LC        | Left curly bracket          | {           | {          |
+| RC        | Right curly bracket         | }           | }          |
+| LB        | Left square bracket         | [           | [          |
+| RB        | Right square bracket        | ]           | ]          |
+| COMA      | Coma                        | ,           | ,          |
+| SEMICOLON | Semicolon                   | ;           | ;          |
+| COLON     | Colon                       | :           | :          |
+| QM        | Question mark               | ?           | ?          |
+| SQ        | Single quote                | '           | '          |
+| DQ        | Double quote                | "           | "          |
 
 <br>
 
