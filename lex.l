@@ -66,6 +66,10 @@
   /* MAIN IN C */
 "int main()" {return MAIN;}
 
+  /* INCLUDE & DEFINES */
+"#include<"[a-zA-Z][a-zA-Z0-9_]*".h>" {strcpy(yylval.var_name, yytext); return INCLUDE;}
+"#define" 	      { return DEFINE;}
+
   /*
   ## DATA TYPES 
   */
@@ -103,15 +107,15 @@
 
 
   /* string in single quote and double quotes*/
-'[^'"]*'					{strcpy(yylval.var_name, yytext); return QUOTED_STRING;}
 \"[^'"]*\"				{strcpy(yylval.var_name, yytext); return QUOTED_STRING;}
+'[^'"]*'					{strcpy(yylval.var_name, yytext); return QUOTED_STRING;}
+
 
   /* for variables*/
-[a-zA-Z_][a-zA-Z0-9_]{0,31}     {strcpy(yylval.var_name, yytext); return VAR;}
+[a-zA-Z_][a-zA-Z0-9_]*     {strcpy(yylval.var_name, yytext); return VAR;}
 
   /* numbers and float */
-[0-9]+ 								          {strcpy(yylval.var_name, yytext); return NUMBER;}
-[0-9]+("."[0-9]+)?              {strcpy(yylval.var_name, yytext);return NUMBER_DOT;}
+[0-9]+("."[0-9]+)?              {strcpy(yylval.var_name, yytext);return NUMBER;}
 
 [\n\t ]+							{/* ignoring newlines, tabs and spaces */}
 

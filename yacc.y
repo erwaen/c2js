@@ -12,6 +12,7 @@
 	int idx = 0;
 	int table_idx = 0;
 	int tab_counter = 0;
+	int current_data_type;
 	char for_var[MAX_NAME_LEN];
 	struct symbol_table{char var_name[MAX_NAME_LEN]; int type;} sym[MAX_VARIABLES];
 	extern int lookup_in_table(char var[MAX_NAME_LEN]);
@@ -29,8 +30,8 @@ char var_name[30];
 
 %token VAR
 %token LNOT LOR LAND LEQ GEQ LT GT NEQ EQ PLUS MINUS MUL DIV MOD ASSIGNMENT
-%token MAIN RETURN BREAK CONTINUE FOR DO WHILE VOID IF ELSE ELSEIF PRINTF
-%token QUOTED_STRING NUMBER NUMBER_DOT 
+%token MAIN RETURN BREAK CONTINUE FOR DO WHILE VOID IF ELSE ELSEIF PRINTF DEFINE INCLUDE
+%token NUMBER QUOTED_STRING 
 %token LC RC COMA RB LB RP LP SEMICOLON COLON QM 
 %token ILCOMMENT MLCOMMENT
 
@@ -46,9 +47,25 @@ char var_name[30];
 
 %%
 
-program     : MAIN LC {printf("function main(){\n"); tab_counter++;} STATEMENTS RC { printf("}");printf("\n/*end of main function*/\n"); }
+program     : BEFORE_MAIN MAIN LC {printf("function main(){\n"); tab_counter++;} STATEMENTS RC { printf("}");printf("\n/*end of main function*/\n"); } AFTER_MAIN
             | /*nothing*/ {printf("\n"); exit(2);}
             ;
+
+BEFORE_MAIN		: INCLUDE BEFORE_MAIN 
+				| DEFINE_DECLARATION BEFORE_MAIN
+				| VAR_DECLARATION BEFORE_MAIN
+				| /*nothing*/ 
+				;
+
+AFTER_MAIN : /* in develop*/
+
+DEFINE_DECLARATION : DEFINE {printf("const ");} VAR {printf("%s = ", yylval.var_name);} TERMINAL {printf(";\n");}
+				   ;
+
+
+VAR_DECLARATION : TYPE VAR { printf("%s", yylval.var_name);} SEMICOLON {printf(";\n");} 
+				| TYPE VAR { printf("%s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL SEMICOLON {printf(";\n");} 
+				;
 
 STATEMENTS  : {print_tabs();} IF_BLOCK STATEMENTS{ }
             | {print_tabs();} COMMENT STATEMENTS{ }
@@ -61,9 +78,20 @@ IF_BLOCK    : IF LP {printf("if (");} EXPRESION RP LC {  printf(") {\n"); tab_co
 EXPRESION   : /*in develop*/ {}
             ;
 
+
+TERMINAL	: NUMBER { printf("%s", yylval.var_name); }
+			| QUOTED_STRING { printf("%s", yylval.var_name); }
+			;
+			
 COMMENT     : ILCOMMENT     { printf("%s\n", yylval.var_name); }
             | MLCOMMENT     { printf("%s", yylval.var_name); }
             ;
+
+TYPE	: INT 		{ $$=$1; current_data_type=$1;  printf("let ");}
+		| CHAR  	{ $$=$1; current_data_type=$1; 	printf("let ");}
+		| FLOAT 	{ $$=$1; current_data_type=$1; 	printf("let ");}
+		| DOUBLE 	{ $$=$1; current_data_type=$1; 	printf("let ");}
+		;
 
 %%
 
