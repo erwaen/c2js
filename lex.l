@@ -113,7 +113,9 @@
 
 
   /* for variables*/
+
 [a-zA-Z_][a-zA-Z0-9_]*     {strcpy(yylval.var_name, yytext); return VAR;}
+
 
   /* numbers and float */
 [0-9]+("."[0-9]+)?              {strcpy(yylval.var_name, yytext);return NUMBER;}

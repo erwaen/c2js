@@ -1129,24 +1129,24 @@ YY_RULE_SETUP
 /* for variables*/
 case 48:
 YY_RULE_SETUP
-#line 117 "lex.l"
+#line 118 "lex.l"
 {strcpy(yylval.var_name, yytext); return VAR;}
 	YY_BREAK
 /* numbers and float */
 case 49:
 YY_RULE_SETUP
-#line 120 "lex.l"
+#line 122 "lex.l"
 {strcpy(yylval.var_name, yytext);return NUMBER;}
 	YY_BREAK
 case 50:
 /* rule 50 can match eol */
 YY_RULE_SETUP
-#line 122 "lex.l"
+#line 124 "lex.l"
 {/* ignoring newlines, tabs and spaces */}
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 125 "lex.l"
+#line 127 "lex.l"
 ECHO;
 	YY_BREAK
 #line 1153 "lex.yy.c"
@@ -2166,7 +2166,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 125 "lex.l"
+#line 127 "lex.l"
 
 
 

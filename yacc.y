@@ -43,6 +43,9 @@ char var_name[30];
 
 
 %type<data_type>TYPE
+%type<data_type>FUNCTION_TYPE
+%type<data_type>TYPE_DECLARATION
+
 
 %start program
 
@@ -56,17 +59,14 @@ program     : BEFORE_MAIN MAIN LC {printf("function main(){\n"); tab_counter++;}
 BEFORE_MAIN		: INCLUDE BEFORE_MAIN 
 				| DEFINE_DECLARATION BEFORE_MAIN
 				| VAR_DECLARATION BEFORE_MAIN
-				| FUNCTION_DECLARATION BEFORE_MAIN
+				| FUNCTION_DEFINITION BEFORE_MAIN
 				| /*nothing*/ 
 				;
 
-FUNCTION_DECLARATION	: TYPE  VAR LP  PARAMETERS RP SEMICOLON
+
+FUNCTION_DEFINITION		: FUNCTION_TYPE  VAR {printf("%s", yylval.var_name);} LP {printf(" (");} PARAMETERS RP {printf(") ");} LC {printf(" {\n"); tab_counter++;} STATEMENTS RC {tab_counter--;print_tabs(); printf("}\n");}
 						;
 
-FUNCTION_DEFINITION		: TYPE  VAR {printf("%s", yylval.var_name);} LP {printf(" (");} PARAMETERS RP {printf(") ");} LC {printf(" {\n"); tab_counter++} STATEMENTS RC {tab_counter--;print_tabs(); printf("}\n");}
-						|
-
-						;
 PARAMETERS	: TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
 			| COMA {printf(", ");} TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
 			| /*nothing*/ 
@@ -78,8 +78,8 @@ DEFINE_DECLARATION : DEFINE {printf("const ");} VAR {printf("%s = ", yylval.var_
 				   ;
 
 
-VAR_DECLARATION : TYPE VAR { printf("%s", yylval.var_name);} SEMICOLON {printf(";\n");} 
-				| TYPE VAR { printf("%s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL SEMICOLON {printf(";\n");} 
+VAR_DECLARATION : TYPE_DECLARATION VAR { printf("%s", yylval.var_name);} SEMICOLON {printf(";\n");} 
+				| TYPE_DECLARATION VAR { printf("%s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL SEMICOLON {printf(";\n");} 
 				;
 
 STATEMENTS  : {print_tabs();} IF_BLOCK STATEMENTS{ }
@@ -102,12 +102,25 @@ COMMENT     : ILCOMMENT     { printf("%s\n", yylval.var_name); }
             | MLCOMMENT     { printf("%s", yylval.var_name); }
             ;
 
-TYPE	: INT 		{ $$=$1; current_data_type=$1;  printf("let ");}
-		| CHAR  	{ $$=$1; current_data_type=$1; 	printf("let ");}
-		| FLOAT 	{ $$=$1; current_data_type=$1; 	printf("let ");}
-		| DOUBLE 	{ $$=$1; current_data_type=$1; 	printf("let ");}
-		| VOID 		{ $$=$1; current_data_type=$1; 	printf("let ");}
-		;
+TYPE		: INT 		{ $$=$1; current_data_type=$1;  }
+			| CHAR  	{ $$=$1; current_data_type=$1; 	}
+			| FLOAT 	{ $$=$1; current_data_type=$1; 	}
+			| DOUBLE 	{ $$=$1; current_data_type=$1; 	}
+			;
+			
+	/* Para declaracion de variables como int var1 o float var2 */
+TYPE_DECLARATION	: INT 		{ $$=$1; current_data_type=$1;  printf("let ");}
+					| CHAR  	{ $$=$1; current_data_type=$1; 	printf("let ");}
+					| FLOAT 	{ $$=$1; current_data_type=$1; 	printf("let ");}
+					| DOUBLE 	{ $$=$1; current_data_type=$1; 	printf("let ");}
+					;
+	/* Para declaracion de funciones como int fun1(){} o void fun2(){} */
+FUNCTION_TYPE	: INT 		{ $$=$1; current_data_type=$1;  printf("function ");}
+				| CHAR  	{ $$=$1; current_data_type=$1; 	printf("function ");}
+				| FLOAT 	{ $$=$1; current_data_type=$1; 	printf("function ");}
+				| DOUBLE 	{ $$=$1; current_data_type=$1; 	printf("function ");}
+				| VOID 		{ $$=$1; current_data_type=$1; 	printf("function ");}
+				;
 
 %%
 
