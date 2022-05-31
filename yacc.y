@@ -30,7 +30,7 @@ char var_name[30];
 
 %token VAR
 %token LNOT LOR LAND LEQ GEQ LT GT NEQ EQ PLUS MINUS MUL DIV MOD ASSIGNMENT
-%token MAIN RETURN BREAK CONTINUE FOR DO WHILE VOID IF ELSE ELSEIF PRINTF DEFINE INCLUDE
+%token MAIN RETURN BREAK CONTINUE FOR DO WHILE IF ELSE ELSEIF PRINTF DEFINE INCLUDE
 %token NUMBER QUOTED_STRING 
 %token LC RC COMA RB LB RP LP SEMICOLON COLON QM 
 %token ILCOMMENT MLCOMMENT
@@ -39,6 +39,8 @@ char var_name[30];
 %token<data_type>CHAR
 %token<data_type>FLOAT
 %token<data_type>DOUBLE
+%token<data_type>VOID
+
 
 %type<data_type>TYPE
 
@@ -54,9 +56,22 @@ program     : BEFORE_MAIN MAIN LC {printf("function main(){\n"); tab_counter++;}
 BEFORE_MAIN		: INCLUDE BEFORE_MAIN 
 				| DEFINE_DECLARATION BEFORE_MAIN
 				| VAR_DECLARATION BEFORE_MAIN
+				| FUNCTION_DECLARATION BEFORE_MAIN
 				| /*nothing*/ 
 				;
 
+FUNCTION_DECLARATION	: TYPE  VAR LP  PARAMETERS RP SEMICOLON
+						;
+
+FUNCTION_DEFINITION		: TYPE  VAR {printf("%s", yylval.var_name);} LP {printf(" (");} PARAMETERS RP {printf(") ");} LC {printf(" {\n"); tab_counter++} STATEMENTS RC {tab_counter--;print_tabs(); printf("}\n");}
+						|
+
+						;
+PARAMETERS	: TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
+			| COMA {printf(", ");} TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
+			| /*nothing*/ 
+			;
+					;
 AFTER_MAIN : /* in develop*/
 
 DEFINE_DECLARATION : DEFINE {printf("const ");} VAR {printf("%s = ", yylval.var_name);} TERMINAL {printf(";\n");}
@@ -91,6 +106,7 @@ TYPE	: INT 		{ $$=$1; current_data_type=$1;  printf("let ");}
 		| CHAR  	{ $$=$1; current_data_type=$1; 	printf("let ");}
 		| FLOAT 	{ $$=$1; current_data_type=$1; 	printf("let ");}
 		| DOUBLE 	{ $$=$1; current_data_type=$1; 	printf("let ");}
+		| VOID 		{ $$=$1; current_data_type=$1; 	printf("let ");}
 		;
 
 %%

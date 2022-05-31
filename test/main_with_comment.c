@@ -2,7 +2,7 @@
 #define HOLA "gsd"
 
 int a = 'dsd';
-
+void hola(int a, int b);
 int main(){
     //hola
 

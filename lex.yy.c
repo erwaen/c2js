@@ -1056,53 +1056,53 @@ YY_RULE_SETUP
   */
 case 35:
 YY_RULE_SETUP
-#line 88 "lex.l"
+#line 89 "lex.l"
 {return RETURN;}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 89 "lex.l"
+#line 90 "lex.l"
 {return BREAK;}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 90 "lex.l"
+#line 91 "lex.l"
 {return CONTINUE;}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 92 "lex.l"
+#line 93 "lex.l"
 {return FOR;}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 93 "lex.l"
+#line 94 "lex.l"
 {return DO;}
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 94 "lex.l"
+#line 95 "lex.l"
 {return WHILE;}
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 95 "lex.l"
+#line 96 "lex.l"
 {return VOID;}
 	YY_BREAK
 /* if {} else if {} else{} */
 case 42:
 YY_RULE_SETUP
-#line 98 "lex.l"
+#line 99 "lex.l"
 {return IF;}
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 99 "lex.l"
+#line 100 "lex.l"
 {return ELSE;}
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 100 "lex.l"
+#line 101 "lex.l"
 {return ELSEIF;} 
 	YY_BREAK
 /* 
@@ -1110,43 +1110,43 @@ YY_RULE_SETUP
   */
 case 45:
 YY_RULE_SETUP
-#line 106 "lex.l"
+#line 107 "lex.l"
 {return PRINTF;}
 	YY_BREAK
 /* string in single quote and double quotes*/
 case 46:
 /* rule 46 can match eol */
 YY_RULE_SETUP
-#line 111 "lex.l"
+#line 112 "lex.l"
 {strcpy(yylval.var_name, yytext); return QUOTED_STRING;}
 	YY_BREAK
 case 47:
 /* rule 47 can match eol */
 YY_RULE_SETUP
-#line 112 "lex.l"
+#line 113 "lex.l"
 {strcpy(yylval.var_name, yytext); return QUOTED_STRING;}
 	YY_BREAK
 /* for variables*/
 case 48:
 YY_RULE_SETUP
-#line 116 "lex.l"
+#line 117 "lex.l"
 {strcpy(yylval.var_name, yytext); return VAR;}
 	YY_BREAK
 /* numbers and float */
 case 49:
 YY_RULE_SETUP
-#line 119 "lex.l"
+#line 120 "lex.l"
 {strcpy(yylval.var_name, yytext);return NUMBER;}
 	YY_BREAK
 case 50:
 /* rule 50 can match eol */
 YY_RULE_SETUP
-#line 121 "lex.l"
+#line 122 "lex.l"
 {/* ignoring newlines, tabs and spaces */}
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 124 "lex.l"
+#line 125 "lex.l"
 ECHO;
 	YY_BREAK
 #line 1153 "lex.yy.c"
@@ -2166,7 +2166,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 124 "lex.l"
+#line 125 "lex.l"
 
 
 
