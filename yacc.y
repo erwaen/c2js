@@ -146,7 +146,7 @@ EXPRESSION_NT: EXPRESSION
 			 | /* nothing */ {yyerror("expected expression before ')' token");}
 			 ;
 
-DELIMITER : SEMICOLON {}
+DELIMITER : SEMICOLON {printf(";\n");}
 		  | RC {printf("}\n");}
 		  ; 
 %%
