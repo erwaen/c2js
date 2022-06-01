@@ -30,7 +30,7 @@ char var_name[30];
 
 %token VAR
 %token LNOT LOR LAND LEQ GEQ LT GT NEQ EQ PLUS MINUS MUL DIV MOD ASSIGNMENT
-%token MAIN RETURN BREAK CONTINUE FOR DO WHILE IF ELSE ELSEIF PRINTF DEFINE INCLUDE
+%token MAIN VOID RETURN BREAK CONTINUE FOR DO WHILE IF ELSE ELSEIF PRINTF DEFINE INCLUDE
 %token NUMBER QUOTED_STRING 
 %token LC RC COMA RB LB RP LP SEMICOLON COLON QM 
 %token ILCOMMENT MLCOMMENT
@@ -39,58 +39,79 @@ char var_name[30];
 %token<data_type>CHAR
 %token<data_type>FLOAT
 %token<data_type>DOUBLE
-%token<data_type>VOID
+
 
 
 %type<data_type>TYPE
-%type<data_type>FUNCTION_TYPE
-%type<data_type>TYPE_DECLARATION
 
 
-%start program
+
+%start c_file
 
 
 %%
 
-program     : BEFORE_MAIN MAIN LC {printf("function main(){\n"); tab_counter++;} STATEMENTS RC { printf("}");printf("\n/*end of main function*/\n"); } AFTER_MAIN
+c_file     : BEFORE_MAIN MAIN LC {printf("function main(){\n"); tab_counter++;} STATEMENTS RC { printf("}");printf("\n/*end of main function*/\n"); } AFTER_MAIN
             | /*nothing*/ {printf("\n"); exit(2);}
             ;
 
 BEFORE_MAIN		: INCLUDE BEFORE_MAIN 
 				| DEFINE_DECLARATION BEFORE_MAIN
-				| VAR_DECLARATION BEFORE_MAIN
-				| FUNCTION_DEFINITION BEFORE_MAIN
-				| /*nothing*/ 
+				| DECLARATION BEFORE_MAIN
+				| error DELIMITER BEFORE_MAIN
+				| /*nothing*/ {} 
 				;
 
+DECLARATION		: TYPE FUNCTION_DECLARATION 
+				| TYPE VAR_DECLARATION
+				;
 
-FUNCTION_DEFINITION		: FUNCTION_TYPE  VAR {printf("%s", yylval.var_name);} LP {printf(" (");} PARAMETERS RP {printf(") ");} LC {printf(" {\n"); tab_counter++;} STATEMENTS RC {tab_counter--;print_tabs(); printf("}\n");}
+FUNCTION_DECLARATION	:  VAR { printf("function %s", yylval.var_name);} LP {printf(" (");} PARAMETERS RP {printf(") ");} LC {printf(" {\n"); tab_counter++;} STATEMENTS RC {tab_counter--;print_tabs(); printf("}\n");}
 						;
 
 PARAMETERS	: TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
 			| COMA {printf(", ");} TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
 			| /*nothing*/ 
 			;
-					;
+					
 AFTER_MAIN : /* in develop*/
+
+/* ===============================================
+	===  DECLARATIONS  (FOR VAR AND FUNCTIONS) ===
+	=============================================*/
 
 DEFINE_DECLARATION : DEFINE {printf("const ");} VAR {printf("%s = ", yylval.var_name);} TERMINAL {printf(";\n");}
 				   ;
 
 
-VAR_DECLARATION : TYPE_DECLARATION VAR { printf("%s", yylval.var_name);} SEMICOLON {printf(";\n");} 
-				| TYPE_DECLARATION VAR { printf("%s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL SEMICOLON {printf(";\n");} 
+
+VAR_DECLARATION : VAR { printf("let %s", yylval.var_name);} SEMICOLON_NT 
+				| VAR { printf("let %s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL SEMICOLON_NT
 				;
+
+/* 	
+	=====================================================================
+	=== USE THE DECLARATIONS like call a function or use variables   ====
+	====================================================================
+*/
+
+INVOKE : /* in develop*/ {}
+
+/* 	
+	=====================================================================
+	===   ====
+	====================================================================
+*/
 
 STATEMENTS  : {print_tabs();} IF_BLOCK STATEMENTS{ }
             | {print_tabs();} COMMENT STATEMENTS{ }
             | /* */ { }
             ;
 
-IF_BLOCK    : IF LP {printf("if (");} EXPRESION RP LC {  printf(") {\n"); tab_counter++;} STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n");}
+IF_BLOCK    : IF LP {printf("if (");} EXPRESSION RP LC {  printf(") {\n"); tab_counter++;} STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n");}
             ;
 
-EXPRESION   : /*in develop*/ {}
+EXPRESSION   : /*in develop*/ {}
             ;
 
 
@@ -106,22 +127,28 @@ TYPE		: INT 		{ $$=$1; current_data_type=$1;  }
 			| CHAR  	{ $$=$1; current_data_type=$1; 	}
 			| FLOAT 	{ $$=$1; current_data_type=$1; 	}
 			| DOUBLE 	{ $$=$1; current_data_type=$1; 	}
+			| VOID 		{ }
 			;
 			
-	/* Para declaracion de variables como int var1 o float var2 */
-TYPE_DECLARATION	: INT 		{ $$=$1; current_data_type=$1;  printf("let ");}
-					| CHAR  	{ $$=$1; current_data_type=$1; 	printf("let ");}
-					| FLOAT 	{ $$=$1; current_data_type=$1; 	printf("let ");}
-					| DOUBLE 	{ $$=$1; current_data_type=$1; 	printf("let ");}
-					;
-	/* Para declaracion de funciones como int fun1(){} o void fun2(){} */
-FUNCTION_TYPE	: INT 		{ $$=$1; current_data_type=$1;  printf("function ");}
-				| CHAR  	{ $$=$1; current_data_type=$1; 	printf("function ");}
-				| FLOAT 	{ $$=$1; current_data_type=$1; 	printf("function ");}
-				| DOUBLE 	{ $$=$1; current_data_type=$1; 	printf("function ");}
-				| VOID 		{ $$=$1; current_data_type=$1; 	printf("function ");}
-				;
 
+
+
+	/* =========================
+	=== FOR YES OR NO THINGS ===
+	===========================*/
+SEMICOLON_NT: SEMICOLON { printf(";\n");}
+			| /*nothing*/ {yyerror("syntax error : missing ';'\n");}
+			;
+
+EXPRESSION_NT: EXPRESSION
+			 | VAR ASSIGNMENT { printf("%s ", yylval.var_name); {printf("= ")};} EXPRESSION
+			 | EXPRESSION ASSIGNMENT {{printf("= ")};} EXPRESSION {yyerror("Maybe you mean '==' operator?");}
+			 | /* nothing */ {yyerror("expected expression before ')' token");}
+			 ;
+
+DELIMITER : SEMICOLON {}
+		  | RC {printf("}\n");}
+		  ; 
 %%
 
 #include "lex.yy.c"
