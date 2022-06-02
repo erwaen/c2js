@@ -147,9 +147,39 @@ TYPE		: INT 		{ $$=$1; current_data_type=$1;  }
 			| DOUBLE 	{ $$=$1; current_data_type=$1; 	}
 			| VOID 		{ }
 			;
-			
-EXPRESSION   : /*in develop*/ {}
-            ;
+
+	/* =========================
+	=== Expression e.g -> a == 2 , var1 && var2, compare things like 2 <= 3 or math operations like 2 + 3 ===
+	===========================*/
+			// comparison operators first
+EXPRESSION  : EXPRESSION  EQ {printf("== ");} EXPRESSION
+ 			| EXPRESSION NEQ {printf("!= ");} EXPRESSION
+			| EXPRESSION GT {printf("> ");} EXPRESSION
+			| EXPRESSION LT {printf("< ");} EXPRESSION
+			| EXPRESSION LEQ {printf("<= ");} EXPRESSION			
+			| EXPRESSION GEQ {printf(">= ");} EXPRESSION
+			// logical operators
+			| EXPRESSION LAND {printf("&& ");} EXPRESSION
+			| EXPRESSION LOR {printf("|| ");} EXPRESSION
+			| LNOT {printf("!");} EXPRESSION
+			// Math operators
+			| EXPRESSION PLUS {printf("+ ");} EXPRESSION
+			| EXPRESSION MINUS {printf("- ");} EXPRESSION
+			| EXPRESSION MUL {printf("* ");} EXPRESSION
+			| EXPRESSION DIV {printf("/ ");} EXPRESSION
+			| EXPRESSION MOD {printf("%% ");} EXPRESSION // for % mod symbol
+			| EXPRESSION PLUS PLUS {printf("++");} // for x++
+			| PLUS PLUS {printf("++");} EXPRESSION // for ++x
+			| EXPRESSION MINUS MINUS {printf("--");}
+			| MINUS MINUS {printf("--");} EXPRESSION 
+			// For some expresions inside in a parenthesis
+			| LP {printf("(");} EXPRESSION RP {printf(") ");}
+			// terminals and vars
+			| VAR {printf("%s", yylval.var_name);}
+			// add later for arrays vars
+			| TERMINAL
+            ;/*in develop*/
+
 
 
 	/* =========================
@@ -165,8 +195,8 @@ EXPRESSION_NT: EXPRESSION
 			 | /* nothing */ {yyerror("expected expression before ')' token");}
 			 ;
 
-DELIMITER : SEMICOLON {printf(";\n");}
-		  | RC {printf("}\n");}
+DELIMITER : SEMICOLON 
+		  | RC 
 		  ; 
 %%
 

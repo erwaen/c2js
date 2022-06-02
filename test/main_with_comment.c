@@ -1,20 +1,13 @@
 #include<stdio.h>
 #define HOLA "gsd"
 
-int hola2 (int a, int b){
-    if () {
-
-    }
-}
 
 int a = 'dsd';
 
-
-
 void hola (int a, int b){
-    if () {
+    if ( a == b) {
 
-    }else if(){
+    }else if( b == c){
 
     }
     else{
@@ -29,10 +22,12 @@ void a;
 int main(){
     //hola
 
-    if (){
+    if (!(a++)){
 
     
 
+    }else if((!(a++))){
+        
     }
 }
 
