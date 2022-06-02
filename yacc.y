@@ -62,33 +62,43 @@ BEFORE_MAIN		: INCLUDE BEFORE_MAIN
 				| /*nothing*/ {} 
 				;
 
+AFTER_MAIN : /* in develop*/
+
+
+
+					
+
+
+/* ===========================================================
+	===  DECLARATIONS  (FOR VAR AND FUNCTIONS and #DEFINE) ===
+	=============================================*/
+
 DECLARATION		: TYPE FUNCTION_DECLARATION 
 				| TYPE VAR_DECLARATION
 				;
 
-FUNCTION_DECLARATION	:  VAR { printf("function %s", yylval.var_name);} LP {printf(" (");} PARAMETERS RP {printf(") ");} LC {printf(" {\n"); tab_counter++;} STATEMENTS RC {tab_counter--;print_tabs(); printf("}\n");}
-						;
-
-PARAMETERS	: TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
-			| COMA {printf(", ");} TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
-			| /*nothing*/ 
-			;
-					
-AFTER_MAIN : /* in develop*/
-
-/* ===============================================
-	===  DECLARATIONS  (FOR VAR AND FUNCTIONS) ===
-	=============================================*/
-
 DEFINE_DECLARATION : DEFINE {printf("const ");} VAR {printf("%s = ", yylval.var_name);} TERMINAL {printf(";\n");}
 				   ;
-
-
 
 VAR_DECLARATION : VAR { printf("let %s", yylval.var_name);} SEMICOLON_NT 
 				| VAR { printf("let %s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL SEMICOLON_NT
 				;
 
+FUNCTION_DECLARATION	:  VAR { printf("function %s", yylval.var_name);} LP {printf("(");} PARAMETERS RP {printf(") ");} LC {printf(" {\n"); tab_counter++;} STATEMENTS RC {tab_counter--;print_tabs(); printf("}\n");}
+						;
+
+
+
+/* 	
+	=====================================================================
+	=== PARAMETERS FOR FUNCTIONS OR ARGUMENTS   ====
+	====================================================================
+*/
+
+PARAMETERS	: TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
+			| COMA {printf(", ");} TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
+			| /*nothing*/ 
+			;
 /* 	
 	=====================================================================
 	=== USE THE DECLARATIONS like call a function or use variables   ====
@@ -108,11 +118,19 @@ STATEMENTS  : {print_tabs();} IF_BLOCK STATEMENTS{ }
             | /* */ { }
             ;
 
-IF_BLOCK    : IF LP {printf("if (");} EXPRESSION RP LC {  printf(") {\n"); tab_counter++;} STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n");}
+/* 	
+	=====================================================================
+	=== IF / ELSE / ELSE IF   ====
+	====================================================================
+*/
+IF_BLOCK    : IF LP {printf("if (");} EXPRESSION_NT RP LC {  printf(") {\n"); tab_counter++;} STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n");} ELSEIF_OR_ELSE
             ;
 
-EXPRESSION   : /*in develop*/ {}
-            ;
+ELSEIF_OR_ELSE 	: ELSEIF LP {print_tabs(); printf("else if (");} EXPRESSION_NT	RP {printf(")");} LC {printf("{\n"); tab_counter++;} STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n"); } ELSEIF_OR_ELSE
+				| ELSE  LC {print_tabs();tab_counter++;printf("else {\n"); } STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n"); }
+				| /* nothing, this is when end the if and there's no more else if or else */ {printf("\n");}
+
+
 
 
 TERMINAL	: NUMBER { printf("%s", yylval.var_name); }
@@ -130,7 +148,8 @@ TYPE		: INT 		{ $$=$1; current_data_type=$1;  }
 			| VOID 		{ }
 			;
 			
-
+EXPRESSION   : /*in develop*/ {}
+            ;
 
 
 	/* =========================
@@ -141,8 +160,8 @@ SEMICOLON_NT: SEMICOLON { printf(";\n");}
 			;
 
 EXPRESSION_NT: EXPRESSION
-			 | VAR ASSIGNMENT { printf("%s ", yylval.var_name); {printf("= ")};} EXPRESSION
-			 | EXPRESSION ASSIGNMENT {{printf("= ")};} EXPRESSION {yyerror("Maybe you mean '==' operator?");}
+			 | VAR ASSIGNMENT { printf("%s ", yylval.var_name); printf("= ");} EXPRESSION
+			 | EXPRESSION ASSIGNMENT {printf("= ");} EXPRESSION {yyerror("Maybe you mean '==' operator?");}
 			 | /* nothing */ {yyerror("expected expression before ')' token");}
 			 ;
 

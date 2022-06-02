@@ -7,14 +7,20 @@ int hola2 (int a, int b){
     }
 }
 
-void a = 'dsd'
+int a = 'dsd';
 
 
 
 void hola (int a, int b){
     if () {
 
+    }else if(){
+
     }
+    else{
+
+    }
+    
 }
 
 void a;
