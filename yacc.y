@@ -76,6 +76,10 @@ AFTER_MAIN : /* in develop*/
 DECLARATION		: TYPE FUNCTION_DECLARATION 
 				| TYPE VAR_DECLARATION
 				;
+			
+VAR_OR_FUNC_USE	: VAR { printf("%s",yylval.var_name);} ASSIGNMENT {printf(" = ");} EXPRESSION_NT  SEMICOLON_NT { printf("\n");}
+				| /*for call a function*/VAR {printf("%s",yylval.var_name);} ASSIGNMENT {printf(" = ");} LP { printf("("); } PARAMETERS RP { printf(")"); } SEMICOLON_NT { printf("\n");}
+				;
 
 DEFINE_DECLARATION : DEFINE {printf("const ");} VAR {printf("%s = ", yylval.var_name);} TERMINAL {printf(";\n");}
 				   ;
@@ -91,7 +95,7 @@ FUNCTION_DECLARATION	:  VAR { printf("function %s", yylval.var_name);} LP {print
 
 /* 	
 	=====================================================================
-	=== PARAMETERS FOR FUNCTIONS OR ARGUMENTS   ====
+	=== PARAMETERS FOR FUNCTIONS OR ARGUMENTS and FOR LOOPS   ====
 	====================================================================
 */
 
@@ -99,6 +103,16 @@ PARAMETERS	: TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
 			| COMA {printf(", ");} TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
 			| /*nothing*/ 
 			;
+
+EXPRESSION_DECLARATION_OR_NoDECL: TYPE VAR {printf("let %s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL 
+								| VAR {printf("%s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL 
+								| VAR { printf("%s", yylval.var_name);}
+								| EXPRESSION
+								| /*nothing*/  
+								;
+								
+FOR_BLOCK_PARAMETERS	: EXPRESSION_DECLARATION_OR_NoDECL SEMICOLON_OR_ERROR EXPRESSION_DECLARATION_OR_NoDECL SEMICOLON_OR_ERROR EXPRESSION // int i = 0; i < 5; i++
+						;		
 /* 	
 	=====================================================================
 	=== USE THE DECLARATIONS like call a function or use variables   ====
@@ -109,12 +123,15 @@ INVOKE : /* in develop*/ {}
 
 /* 	
 	=====================================================================
-	===   ====
+	===  ALL TYPES OF STATEMENTS ====
 	====================================================================
 */
 
-STATEMENTS  : {print_tabs();} IF_BLOCK STATEMENTS{ }
-            | {print_tabs();} COMMENT STATEMENTS{ }
+STATEMENTS  : {print_tabs();} VAR_OR_FUNC_USE STATEMENTS{} 
+			| {print_tabs();} IF_BLOCK STATEMENTS{}
+			| {print_tabs();} FOR_BLOCK STATEMENTS{}
+            | {print_tabs();} COMMENT STATEMENTS{}
+			| error DELIMITER BEFORE_MAIN
             | /* */ { }
             ;
 
@@ -130,8 +147,14 @@ ELSEIF_OR_ELSE 	: ELSEIF LP {print_tabs(); printf("else if (");} EXPRESSION_NT	R
 				| ELSE  LC {print_tabs();tab_counter++;printf("else {\n"); } STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n"); }
 				| /* nothing, this is when end the if and there's no more else if or else */ {printf("\n");}
 
+/* 	
+	=====================================================================
+	=== FOR LOOP/ WHILE LOOP/ DO WHILE   ====
+	====================================================================
+*/
 
-
+FOR_BLOCK	: FOR LP {printf("for(");} FOR_BLOCK_PARAMETERS RP LC {printf("){\n"); tab_counter++;} STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n");} // for(FOR_BLOCK_PARAMETERS){STATEMENTS}
+			;
 
 TERMINAL	: NUMBER { printf("%s", yylval.var_name); }
 			| QUOTED_STRING { printf("%s", yylval.var_name); }
@@ -183,11 +206,16 @@ EXPRESSION  : EXPRESSION  EQ {printf("== ");} EXPRESSION
 
 
 	/* =========================
-	=== FOR YES OR NO THINGS ===
+	=== FOR HANDLING ERRORES ===
 	===========================*/
-SEMICOLON_NT: SEMICOLON { printf(";\n");}
+SEMICOLON_NT: SEMICOLON { printf(";");}
 			| /*nothing*/ {yyerror("syntax error : missing ';'\n");}
 			;
+
+SEMICOLON_OR_ERROR: SEMICOLON { printf(";");}
+				  | COMA { printf(","); printf("\nSYNTAX_ERROR: You put a ',', must be a ';'!\n");}
+				  | COLON { printf(":"); printf("\nSYNTAX_ERROR: You put a ':', must be a ';'!\n");}
+				  ;
 
 EXPRESSION_NT: EXPRESSION
 			 | VAR ASSIGNMENT { printf("%s ", yylval.var_name); printf("= ");} EXPRESSION
