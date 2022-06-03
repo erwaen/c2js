@@ -51,7 +51,7 @@ char var_name[30];
 
 %%
 
-c_file     : BEFORE_MAIN MAIN LC {printf("function main(){\n"); tab_counter++;} STATEMENTS RC { printf("}");printf("\n/*end of main function*/\n"); } AFTER_MAIN
+c_file     : BEFORE_MAIN MAIN LC {printf("function main(){\n"); tab_counter++;} STATEMENTS RC { printf("}");printf("\n/*end of main function*/\n"); } 
             | /*nothing*/ {printf("\n"); exit(2);}
             ;
 
@@ -62,7 +62,6 @@ BEFORE_MAIN		: INCLUDE BEFORE_MAIN
 				| /*nothing*/ {} 
 				;
 
-AFTER_MAIN : /* in develop*/
 
 
 
@@ -77,15 +76,13 @@ DECLARATION		: TYPE FUNCTION_DECLARATION
 				| TYPE VAR_DECLARATION
 				;
 			
-VAR_OR_FUNC_USE	: VAR { printf("%s",yylval.var_name);} ASSIGNMENT {printf(" = ");} EXPRESSION_NT  SEMICOLON_NT { printf("\n");}
-				| /*for call a function*/VAR {printf("%s",yylval.var_name);} ASSIGNMENT {printf(" = ");} LP { printf("("); } PARAMETERS RP { printf(")"); } SEMICOLON_NT { printf("\n");}
-				;
+
 
 DEFINE_DECLARATION : DEFINE {printf("const ");} VAR {printf("%s = ", yylval.var_name);} TERMINAL {printf(";\n");}
 				   ;
 
-VAR_DECLARATION : VAR { printf("let %s", yylval.var_name);} SEMICOLON_NT 
-				| VAR { printf("let %s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL SEMICOLON_NT
+VAR_DECLARATION : VAR { printf("let %s", yylval.var_name);} SEMICOLON_NT {printf("\n");}
+				| VAR { printf("let %s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL SEMICOLON_NT {printf("\n");}
 				;
 
 FUNCTION_DECLARATION	:  VAR { printf("function %s", yylval.var_name);} LP {printf("(");} PARAMETERS RP {printf(") ");} LC {printf(" {\n"); tab_counter++;} STATEMENTS RC {tab_counter--;print_tabs(); printf("}\n");}
@@ -104,8 +101,8 @@ PARAMETERS	: TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
 			| /*nothing*/ 
 			;
 
-EXPRESSION_DECLARATION_OR_NoDECL: TYPE VAR {printf("let %s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL 
-								| VAR {printf("%s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL 
+EXPRESSION_DECLARATION_OR_NoDECL: TYPE VAR {printf("let %s", yylval.var_name);} ASSIGNMENT {printf(" = ");} EXPRESSION_NT
+								| VAR {printf("%s", yylval.var_name);} ASSIGNMENT {printf(" = ");} EXPRESSION_NT 
 								| VAR { printf("%s", yylval.var_name);}
 								| EXPRESSION
 								| /*nothing*/  
@@ -119,7 +116,10 @@ FOR_BLOCK_PARAMETERS	: EXPRESSION_DECLARATION_OR_NoDECL SEMICOLON_OR_ERROR EXPRE
 	====================================================================
 */
 
-INVOKE : /* in develop*/ {}
+VAR_OR_FUNC_USE	: VAR { printf("%s",yylval.var_name);} ASSIGNMENT {printf(" = ");} EXPRESSION_NT  SEMICOLON_NT { printf("\n");}
+				| /*for call a function*/VAR {printf("%s",yylval.var_name);}  LP { printf("("); } PARAMETERS RP { printf(")"); } SEMICOLON_NT { printf("\n");}
+				| TYPE VAR_DECLARATION 
+				;
 
 /* 	
 	=====================================================================
@@ -129,6 +129,8 @@ INVOKE : /* in develop*/ {}
 
 STATEMENTS  : {print_tabs();} VAR_OR_FUNC_USE STATEMENTS{} 
 			| {print_tabs();} IF_BLOCK STATEMENTS{}
+			| {print_tabs();} WHILE_BLOCK STATEMENTS {}
+			| {print_tabs();} DO_WHILE_BLOCK STATEMENTS {}
 			| {print_tabs();} FOR_BLOCK STATEMENTS{}
             | {print_tabs();} COMMENT STATEMENTS{}
 			| error DELIMITER BEFORE_MAIN
@@ -155,6 +157,12 @@ ELSEIF_OR_ELSE 	: ELSEIF LP {print_tabs(); printf("else if (");} EXPRESSION_NT	R
 
 FOR_BLOCK	: FOR LP {printf("for(");} FOR_BLOCK_PARAMETERS RP LC {printf("){\n"); tab_counter++;} STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n");} // for(FOR_BLOCK_PARAMETERS){STATEMENTS}
 			;
+
+WHILE_BLOCK : WHILE LP {printf("while(");} EXPRESSION_NT RP LC {printf("){\n"); tab_counter++;} STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n"); }
+			;
+
+DO_WHILE_BLOCK 	: DO LC {printf("do{\n"); tab_counter++;} STATEMENTS RC WHILE LP {tab_counter--;print_tabs(); printf("}while(");} EXPRESSION_NT RP {printf(")");} SEMICOLON_NT {printf("\n");}
+				;
 
 TERMINAL	: NUMBER { printf("%s", yylval.var_name); }
 			| QUOTED_STRING { printf("%s", yylval.var_name); }
@@ -220,7 +228,7 @@ SEMICOLON_OR_ERROR: SEMICOLON { printf(";");}
 EXPRESSION_NT: EXPRESSION
 			 | VAR ASSIGNMENT { printf("%s ", yylval.var_name); printf("= ");} EXPRESSION
 			 | EXPRESSION ASSIGNMENT {printf("= ");} EXPRESSION {yyerror("Maybe you mean '==' operator?");}
-			 | /* nothing */ {yyerror("expected expression before ')' token");}
+			 | /* nothing */ {yyerror("expected expression before the token");}
 			 ;
 
 DELIMITER : SEMICOLON 
