@@ -7,7 +7,7 @@ int main(){
             a = 2;
             int b;
             c = 2;
-            a = (b = c );
+            a = b = c ;
             
         }
     }

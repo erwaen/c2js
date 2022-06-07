@@ -16,7 +16,7 @@ void hola (int a, int b){
     
 }
 
-void a;
+
 
 
 int main(){

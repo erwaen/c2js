@@ -35,6 +35,8 @@ char var_name[30];
 %token LC RC COMA RB LB RP LP SEMICOLON COLON QM 
 %token ILCOMMENT MLCOMMENT
 
+%left LAND LOR GEQ LEQ NOT GT LT NEQ DEQ PLUS MINUS MUL DIV MOD
+
 %token<data_type>INT
 %token<data_type>CHAR
 %token<data_type>FLOAT
@@ -83,10 +85,24 @@ DEFINE_DECLARATION : DEFINE {printf("const ");} VAR {printf("%s = ", yylval.var_
 
 VAR_DECLARATION : VAR { printf("let %s", yylval.var_name);} SEMICOLON_NT {printf("\n");}
 				| VAR { printf("let %s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL SEMICOLON_NT {printf("\n");}
+				| VAR { printf("let %s", yylval.var_name);} ARRAY_DIMENSION  ARRAY_ASSIGNMENT SEMICOLON_NT {printf("\n");}
 				;
 
 FUNCTION_DECLARATION	:  VAR { printf("function %s", yylval.var_name);} LP {printf("(");} PARAMETERS RP {printf(") ");} LC {printf(" {\n"); tab_counter++;} STATEMENTS RC {tab_counter--;print_tabs(); printf("}\n");}
 						;
+
+ARRAY_DIMENSION : LB ARRAY_SIZE RB ARRAY_DIMENSION
+				| LB ARRAY_SIZE RB 
+				;
+
+ARRAY_SIZE : NUMBER 
+		   | VAR
+		   | /* nothing*/ 
+		   ;
+
+ARRAY_ASSIGNMENT	: ASSIGNMENT {printf(" = ");} // IN DEVELOPMENT
+					| /*NO ASIGNMENT */
+					;
 
 
 
