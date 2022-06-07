@@ -3,8 +3,9 @@
 	#include<stdlib.h>
 	#include<string.h>
 	#include<time.h>
-	#define MAX_NAME_LEN 32
-	#define MAX_VARIABLES 32
+	#define VAR_NAME_LEN 32
+	#define CANT_VARIABLES 50
+	#define SCOPE_SIZE 50
 	int yylex(void);
 	int yyerror(const char *s);
 	int success = 1;
@@ -13,13 +14,16 @@
 	int table_idx = 0;
 	int tab_counter = 0;
 	int current_data_type;
-	char for_var[MAX_NAME_LEN];
-	struct symbol_table{char var_name[MAX_NAME_LEN]; int type;} sym[MAX_VARIABLES];
-	extern int lookup_in_table(char var[MAX_NAME_LEN]);
-	extern void insert_to_table(char var[MAX_NAME_LEN], int type);
+	char scopeStack[SCOPE_SIZE][CANT_VARIABLES];
+	int var_fun_type = -1;
+	int scopeStackCounter = -1;
+	char for_var[VAR_NAME_LEN];
+	struct symbol_table{char var_name[VAR_NAME_LEN]; int type; char scopeName[VAR_NAME_LEN] ;} sym[CANT_VARIABLES];
+	extern int lookup_in_table(char var[VAR_NAME_LEN]);
+	extern void insert_to_table(char var[VAR_NAME_LEN], int type);
 	extern void print_tabs();
-	char var_list[MAX_VARIABLES][MAX_NAME_LEN];	// MAX_VARIABLES variable names with each variable being atmost MAX_NAME_LEN characters long
-	int string_or_var[MAX_VARIABLES];
+	char var_list[CANT_VARIABLES][VAR_NAME_LEN];	
+	int string_or_var[CANT_VARIABLES];
 	//extern int *yytext;
 %}
 
@@ -60,6 +64,7 @@ c_file     : BEFORE_MAIN MAIN LC {printf("function main(){\n"); tab_counter++;} 
 BEFORE_MAIN		: INCLUDE BEFORE_MAIN 
 				| DEFINE_DECLARATION BEFORE_MAIN
 				| DECLARATION BEFORE_MAIN
+				| COMMENT BEFORE_MAIN
 				| error DELIMITER BEFORE_MAIN
 				| /*nothing*/ {} 
 				;
@@ -83,9 +88,9 @@ DECLARATION		: TYPE FUNCTION_DECLARATION
 DEFINE_DECLARATION : DEFINE {printf("const ");} VAR {printf("%s = ", yylval.var_name);} TERMINAL {printf(";\n");}
 				   ;
 
-VAR_DECLARATION : VAR { printf("let %s", yylval.var_name);} SEMICOLON_NT {printf("\n");}
-				| VAR { printf("let %s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL SEMICOLON_NT {printf("\n");}
-				| VAR { printf("let %s", yylval.var_name);} ARRAY_DIMENSION  ARRAY_ASSIGNMENT SEMICOLON_NT {printf("\n");}
+VAR_DECLARATION : VAR { insert_to_table(yylval.var_name,current_data_type); printf("let %s", yylval.var_name);} SEMICOLON_NT {printf("\n");}
+				| VAR { insert_to_table(yylval.var_name,current_data_type); printf("let %s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL SEMICOLON_NT {printf("\n");}
+				| VAR { insert_to_table(yylval.var_name,current_data_type); printf("let %s", yylval.var_name);} ARRAY_DIMENSION  ARRAY_ASSIGNMENT SEMICOLON_NT {printf("\n");}
 				;
 
 FUNCTION_DECLARATION	:  VAR { printf("function %s", yylval.var_name);} LP {printf("(");} PARAMETERS RP {printf(") ");} LC {printf(" {\n"); tab_counter++;} STATEMENTS RC {tab_counter--;print_tabs(); printf("}\n");}
@@ -132,7 +137,7 @@ FOR_BLOCK_PARAMETERS	: EXPRESSION_DECLARATION_OR_NoDECL SEMICOLON_OR_ERROR EXPRE
 	====================================================================
 */
 
-VAR_OR_FUNC_USE	: VAR { printf("%s",yylval.var_name);} ASSIGNMENT {printf(" = ");} EXPRESSION_NT  SEMICOLON_NT { printf("\n");}
+VAR_OR_FUNC_USE	: VAR { printf("%s",yylval.var_name); } ASSIGNMENT {printf(" = ");} EXPRESSION_NT  SEMICOLON_NT { printf("\n");}
 				| /*for call a function*/VAR {printf("%s",yylval.var_name);}  LP { printf("("); } PARAMETERS RP { printf(")"); } SEMICOLON_NT { printf("\n");}
 				| TYPE VAR_DECLARATION 
 				;
@@ -253,28 +258,45 @@ DELIMITER : SEMICOLON
 %%
 
 #include "lex.yy.c"
-int lookup_in_table(char var[MAX_NAME_LEN])
+
+
+
+
+int lookup_in_table(char var[VAR_NAME_LEN])
 {
+	/*
+	If the variable exists AND its scope is ok, return the data type.
+	Else return -1
+	*/
 	for(int i=0; i<table_idx; i++)
 	{
-		if(strcmp(sym[i].var_name, var)==0)
+		// we ned to check if the variable exist and has a correct scope to return the type
+		if(strcmp(sym[i].var_name, var)==0 && strcmp (sym[i].scopeName, scopeStack[scopeStackCounter]) == 0)
 			return sym[i].type;
 	}
 	return -1;
 }
 
-void insert_to_table(char var[MAX_NAME_LEN], int type)
+
+
+void insert_to_table(char var[VAR_NAME_LEN], int type)
 {
+	/* 
+	Insert names of the variables to the variable table.
+	Check whatever there's are MULTIPLE DECLARATION on the SAME SCOPE  
+	*/
 	if(lookup_in_table(var)==-1)
 	{
+		/* if is a new varible then update the table and the scope stack */
 		strcpy(sym[table_idx].var_name,var);
+		strcpy(sym[table_idx].scopeName, scopeStack[scopeStackCounter]);
 		sym[table_idx].type = type;
 		table_idx++;
 	}
 	else {
-		printf("Multiple declaration of variable\n");
+		printf("'%s' has multiple declaration of the variable\n", var);
 		yyerror("");
-		exit(0);
+		/* exit(0); */
 	}
 }
 void print_tabs() {
