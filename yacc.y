@@ -57,7 +57,7 @@ char var_name[30];
 
 %%
 
-c_file     : BEFORE_MAIN MAIN LC {printf("function main(){\n"); tab_counter++;} STATEMENTS RC { printf("}");printf("\n/*end of main function*/\n"); } 
+c_file      : {add_to_scope_stack("global");} BEFORE_MAIN MAIN LC {printf("function main(){\n"); add_to_scope_stack("main"); tab_counter++; } STATEMENTS RC { remove_from_scope_stack(); printf("}");printf("\n/*end of main function*/\n"); remove_from_scope_stack(); } 
             | /*nothing*/ {printf("\n"); exit(2);}
             ;
 
@@ -93,7 +93,7 @@ VAR_DECLARATION : VAR { insert_to_table(yylval.var_name,current_data_type); prin
 				| VAR { insert_to_table(yylval.var_name,current_data_type); printf("let %s", yylval.var_name);} ARRAY_DIMENSION  ARRAY_ASSIGNMENT SEMICOLON_NT {printf("\n");}
 				;
 
-FUNCTION_DECLARATION	:  VAR { printf("function %s", yylval.var_name);} LP {printf("(");} PARAMETERS RP {printf(") ");} LC {printf(" {\n"); tab_counter++;} STATEMENTS RC {tab_counter--;print_tabs(); printf("}\n");}
+FUNCTION_DECLARATION	:  VAR { printf("function %s", yylval.var_name); add_to_scope_stack(yylval.var_name);} LP {printf("(");} PARAMETERS RP {printf(") ");} LC {printf(" {\n"); tab_counter++;} STATEMENTS RC {tab_counter--;print_tabs(); printf("}\n"); remove_from_scope_stack(); }
 						;
 
 ARRAY_DIMENSION : LB ARRAY_SIZE RB ARRAY_DIMENSION
@@ -137,7 +137,7 @@ FOR_BLOCK_PARAMETERS	: EXPRESSION_DECLARATION_OR_NoDECL SEMICOLON_OR_ERROR EXPRE
 	====================================================================
 */
 
-VAR_OR_FUNC_USE	: VAR { printf("%s",yylval.var_name); } ASSIGNMENT {printf(" = ");} EXPRESSION_NT  SEMICOLON_NT { printf("\n");}
+VAR_OR_FUNC_USE	: VAR { printf("%s",yylval.var_name); search_var_in_scope(yylval.var_name); } ASSIGNMENT {printf(" = ");} EXPRESSION_NT  SEMICOLON_NT { printf("\n");}
 				| /*for call a function*/VAR {printf("%s",yylval.var_name);}  LP { printf("("); } PARAMETERS RP { printf(")"); } SEMICOLON_NT { printf("\n");}
 				| TYPE VAR_DECLARATION 
 				;
@@ -259,8 +259,39 @@ DELIMITER : SEMICOLON
 
 #include "lex.yy.c"
 
+void add_to_scope_stack(char var[VAR_NAME_LEN]){
+	if(scopeStackCounter < SCOPE_SIZE){
+		scopeStackCounter++;
+		strcpy(scopeStack[scopeStackCounter], var);
+	}else{
+		printf("NO MORE SPACE IN SCOPE STACK ARRAY!");
+		yyerror("NO MORE SPACE IN SCOPE STACK ARRAY!");
+		exit(0);
+	}
+}
 
+void remove_from_scope_stack(){
+	scopeStackCounter--;
+}
 
+int search_var_in_scope(char var[VAR_NAME_LEN]){
+	/*In this function search the VAR (argument) in the table on the current scope or on parents scopes */
+	int is_found = 0; // bool to say if the var was found or not
+	int idx = -1; // index to return in case that we found on the table
+
+	for(int j = scopeStackCounter; j>=0; j--){
+		for ( int i = 0; i<table_idx; i++){
+			if(strcmp(sym[i].var_name, var) == 0 && strcmp(sym[i].scopeName, scopeStack[j]) == 0){
+				return idx;
+			}
+		}
+	}
+
+	printf("'%s' was not declared in the scope \n", var);
+	return idx;
+	
+
+}
 
 int lookup_in_table(char var[VAR_NAME_LEN])
 {
