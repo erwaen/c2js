@@ -6,7 +6,7 @@ int c = 1;
 int fun1(){
     int a = 5;
     a = 2;
-    b = 2; // this need to give us a error
+    b = 2; // this has to give us an error
 
     c = 2;
 }
