@@ -85,7 +85,7 @@ DECLARATION		: TYPE FUNCTION_DECLARATION
 			
 
 
-DEFINE_DECLARATION : DEFINE {printf("const ");} VAR {printf("%s = ", yylval.var_name);} TERMINAL {printf(";\n");}
+DEFINE_DECLARATION : DEFINE {insert_to_table(yylval.var_name,current_data_type);printf("const ");} VAR {printf("%s = ", yylval.var_name);} TERMINAL {printf(";\n");}
 				   ;
 
 VAR_DECLARATION : VAR { insert_to_table(yylval.var_name,current_data_type); printf("let %s", yylval.var_name);} SEMICOLON_NT {printf("\n");}
@@ -163,11 +163,11 @@ STATEMENTS  : {print_tabs();} VAR_OR_FUNC_USE STATEMENTS{}
 	=== IF / ELSE / ELSE IF   ====
 	====================================================================
 */
-IF_BLOCK    : IF LP {printf("if (");} EXPRESSION_NT RP LC {  printf(") {\n"); tab_counter++;} STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n");} ELSEIF_OR_ELSE
+IF_BLOCK    : IF LP {create_scope_2();printf("if (");} EXPRESSION_NT RP LC {  printf(") {\n"); tab_counter++;} STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n");} ELSEIF_OR_ELSE
             ;
 
-ELSEIF_OR_ELSE 	: ELSEIF LP {print_tabs(); printf("else if (");} EXPRESSION_NT	RP {printf(")");} LC {printf("{\n"); tab_counter++;} STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n"); } ELSEIF_OR_ELSE
-				| ELSE  LC {print_tabs();tab_counter++;printf("else {\n"); } STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n"); }
+ELSEIF_OR_ELSE 	: ELSEIF LP {create_scope_2();print_tabs(); printf("else if (");} EXPRESSION_NT	RP {printf(")");} LC {printf("{\n"); tab_counter++;} STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n"); } ELSEIF_OR_ELSE
+				| ELSE  LC {create_scope_2();print_tabs();tab_counter++;printf("else {\n"); } STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n"); }
 				| /* nothing, this is when end the if and there's no more else if or else */ {printf("\n");}
 
 /* 	
@@ -176,13 +176,13 @@ ELSEIF_OR_ELSE 	: ELSEIF LP {print_tabs(); printf("else if (");} EXPRESSION_NT	R
 	====================================================================
 */
 
-FOR_BLOCK	: FOR LP {printf("for(");} FOR_BLOCK_PARAMETERS RP LC {printf("){\n"); tab_counter++;} STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n");} // for(FOR_BLOCK_PARAMETERS){STATEMENTS}
+FOR_BLOCK	: FOR LP {create_scope_2();printf("for(");} FOR_BLOCK_PARAMETERS RP LC {printf("){\n"); tab_counter++;} STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n");} // for(FOR_BLOCK_PARAMETERS){STATEMENTS}
 			;
 
-WHILE_BLOCK : WHILE LP {printf("while(");} EXPRESSION_NT RP LC {printf("){\n"); tab_counter++;} STATEMENTS RC {tab_counter--; print_tabs(); printf("}\n"); }
+WHILE_BLOCK : WHILE LP {create_scope_2();printf("while(");} EXPRESSION_NT RP LC {printf("){\n"); tab_counter++;} STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n"); }
 			;
 
-DO_WHILE_BLOCK 	: DO LC {printf("do{\n"); tab_counter++;} STATEMENTS RC WHILE LP {tab_counter--;print_tabs(); printf("}while(");} EXPRESSION_NT RP {printf(")");} SEMICOLON_NT {printf("\n");}
+DO_WHILE_BLOCK 	: DO LC {create_scope_2();printf("do{\n"); tab_counter++;} STATEMENTS RC WHILE LP {remove_from_scope_stack();tab_counter--;print_tabs(); printf("}while(");} EXPRESSION_NT RP {printf(")");} SEMICOLON_NT {printf("\n");}
 				;
 
 TERMINAL	: NUMBER { printf("%s", yylval.var_name); }
@@ -259,10 +259,10 @@ DELIMITER : SEMICOLON
 
 #include "lex.yy.c"
 
-void add_to_scope_stack(char var[VAR_NAME_LEN]){
+void add_to_scope_stack(char newScopeName[VAR_NAME_LEN]){
 	if(scopeStackCounter < SCOPE_SIZE){
 		scopeStackCounter++;
-		strcpy(scopeStack[scopeStackCounter], var);
+		strcpy(scopeStack[scopeStackCounter], newScopeName);
 	}else{
 		printf("NO MORE SPACE IN SCOPE STACK ARRAY!");
 		yyerror("NO MORE SPACE IN SCOPE STACK ARRAY!");
@@ -291,6 +291,14 @@ int search_var_in_scope(char var[VAR_NAME_LEN]){
 	return idx;
 	
 
+}
+//Crea un scope para los if, while, for, etc.
+void create_scope_2(){
+	static int idForThisFunction = 0;
+	char newName[30];
+	sprintf(newName,"scope_%d",idForThisFunction);
+	add_to_scope_stack(newName);
+	idForThisFunction++;
 }
 
 int lookup_in_table(char var[VAR_NAME_LEN])

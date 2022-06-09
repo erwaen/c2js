@@ -1616,19 +1616,19 @@ yyreduce:
 
   case 14: /* $@3: %empty  */
 #line 88 "yacc.y"
-                            {printf("const ");}
+                            {insert_to_table(yylval.var_name,current_data_type);printf("const ");}
 #line 1621 "y.tab.c"
     break;
 
   case 15: /* $@4: %empty  */
 #line 88 "yacc.y"
-                                                    {printf("%s = ", yylval.var_name);}
+                                                                                                       {printf("%s = ", yylval.var_name);}
 #line 1627 "y.tab.c"
     break;
 
   case 16: /* DEFINE_DECLARATION: DEFINE $@3 VAR $@4 TERMINAL  */
 #line 88 "yacc.y"
-                                                                                                 {printf(";\n");}
+                                                                                                                                                    {printf(";\n");}
 #line 1633 "y.tab.c"
     break;
 
@@ -1880,55 +1880,55 @@ yyreduce:
 
   case 74: /* $@31: %empty  */
 #line 166 "yacc.y"
-                    {printf("if (");}
+                    {create_scope_2();printf("if (");}
 #line 1885 "y.tab.c"
     break;
 
   case 75: /* $@32: %empty  */
 #line 166 "yacc.y"
-                                                          {  printf(") {\n"); tab_counter++;}
+                                                                           {  printf(") {\n"); tab_counter++;}
 #line 1891 "y.tab.c"
     break;
 
   case 76: /* $@33: %empty  */
 #line 166 "yacc.y"
-                                                                                                            {tab_counter--; print_tabs(); printf("}\n");}
+                                                                                                                             {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n");}
 #line 1897 "y.tab.c"
     break;
 
   case 78: /* $@34: %empty  */
 #line 169 "yacc.y"
-                            {print_tabs(); printf("else if (");}
+                            {create_scope_2();print_tabs(); printf("else if (");}
 #line 1903 "y.tab.c"
     break;
 
   case 79: /* $@35: %empty  */
 #line 169 "yacc.y"
-                                                                                   {printf(")");}
+                                                                                                   {printf(")");}
 #line 1909 "y.tab.c"
     break;
 
   case 80: /* $@36: %empty  */
 #line 169 "yacc.y"
-                                                                                                     {printf("{\n"); tab_counter++;}
+                                                                                                                     {printf("{\n"); tab_counter++;}
 #line 1915 "y.tab.c"
     break;
 
   case 81: /* $@37: %empty  */
 #line 169 "yacc.y"
-                                                                                                                                                   {tab_counter--; print_tabs(); printf("}\n"); }
+                                                                                                                                                                   {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n"); }
 #line 1921 "y.tab.c"
     break;
 
   case 83: /* $@38: %empty  */
 #line 170 "yacc.y"
-                                           {print_tabs();tab_counter++;printf("else {\n"); }
+                                           {create_scope_2();print_tabs();tab_counter++;printf("else {\n"); }
 #line 1927 "y.tab.c"
     break;
 
   case 84: /* ELSEIF_OR_ELSE: ELSE LC $@38 STATEMENTS RC  */
 #line 170 "yacc.y"
-                                                                                                           {tab_counter--; print_tabs(); printf("}\n"); }
+                                                                                                                            {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n"); }
 #line 1933 "y.tab.c"
     break;
 
@@ -1940,61 +1940,61 @@ yyreduce:
 
   case 86: /* $@39: %empty  */
 #line 179 "yacc.y"
-                         {printf("for(");}
+                         {create_scope_2();printf("for(");}
 #line 1945 "y.tab.c"
     break;
 
   case 87: /* $@40: %empty  */
 #line 179 "yacc.y"
-                                                                      {printf("){\n"); tab_counter++;}
+                                                                                       {printf("){\n"); tab_counter++;}
 #line 1951 "y.tab.c"
     break;
 
   case 88: /* FOR_BLOCK: FOR LP $@39 FOR_BLOCK_PARAMETERS RP LC $@40 STATEMENTS RC  */
 #line 179 "yacc.y"
-                                                                                                                     {tab_counter--; print_tabs(); printf("}\n");}
+                                                                                                                                      {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n");}
 #line 1957 "y.tab.c"
     break;
 
   case 89: /* $@41: %empty  */
 #line 182 "yacc.y"
-                       {printf("while(");}
+                       {create_scope_2();printf("while(");}
 #line 1963 "y.tab.c"
     break;
 
   case 90: /* $@42: %empty  */
 #line 182 "yacc.y"
-                                                               {printf("){\n"); tab_counter++;}
+                                                                                {printf("){\n"); tab_counter++;}
 #line 1969 "y.tab.c"
     break;
 
   case 91: /* WHILE_BLOCK: WHILE LP $@41 EXPRESSION_NT RP LC $@42 STATEMENTS RC  */
 #line 182 "yacc.y"
-                                                                                                              {tab_counter--; print_tabs(); printf("}\n"); }
+                                                                                                                               {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n"); }
 #line 1975 "y.tab.c"
     break;
 
   case 92: /* $@43: %empty  */
 #line 185 "yacc.y"
-                        {printf("do{\n"); tab_counter++;}
+                        {create_scope_2();printf("do{\n"); tab_counter++;}
 #line 1981 "y.tab.c"
     break;
 
   case 93: /* $@44: %empty  */
 #line 185 "yacc.y"
-                                                                                 {tab_counter--;print_tabs(); printf("}while(");}
+                                                                                                  {remove_from_scope_stack();tab_counter--;print_tabs(); printf("}while(");}
 #line 1987 "y.tab.c"
     break;
 
   case 94: /* $@45: %empty  */
 #line 185 "yacc.y"
-                                                                                                                                                   {printf(")");}
+                                                                                                                                                                                              {printf(")");}
 #line 1993 "y.tab.c"
     break;
 
   case 95: /* DO_WHILE_BLOCK: DO LC $@43 STATEMENTS RC WHILE LP $@44 EXPRESSION_NT RP $@45 SEMICOLON_NT  */
 #line 185 "yacc.y"
-                                                                                                                                                                               {printf("\n");}
+                                                                                                                                                                                                                          {printf("\n");}
 #line 1999 "y.tab.c"
     break;
 
@@ -2431,10 +2431,10 @@ yyreturnlab:
 
 #include "lex.yy.c"
 
-void add_to_scope_stack(char var[VAR_NAME_LEN]){
+void add_to_scope_stack(char newScopeName[VAR_NAME_LEN]){
 	if(scopeStackCounter < SCOPE_SIZE){
 		scopeStackCounter++;
-		strcpy(scopeStack[scopeStackCounter], var);
+		strcpy(scopeStack[scopeStackCounter], newScopeName);
 	}else{
 		printf("NO MORE SPACE IN SCOPE STACK ARRAY!");
 		yyerror("NO MORE SPACE IN SCOPE STACK ARRAY!");
@@ -2463,6 +2463,14 @@ int search_var_in_scope(char var[VAR_NAME_LEN]){
 	return idx;
 	
 
+}
+//Crea un scope para los if, while, for, etc.
+void create_scope_2(){
+	static int idForThisFunction = 0;
+	char newName[30];
+	sprintf(newName,"scope_%d",idForThisFunction);
+	add_to_scope_stack(newName);
+	idForThisFunction++;
 }
 
 int lookup_in_table(char var[VAR_NAME_LEN])
