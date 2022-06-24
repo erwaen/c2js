@@ -3,6 +3,8 @@
 	#include<stdlib.h>
 	#include<string.h>
 	#include<time.h>
+	#include "verificacion_tipo.h"
+	#define JSFILE "traducido.js"
 	#define VAR_NAME_LEN 32
 	#define CANT_VARIABLES 50
 	#define SCOPE_SIZE 50
@@ -25,6 +27,8 @@
 	char var_list[CANT_VARIABLES][VAR_NAME_LEN];	
 	int string_or_var[CANT_VARIABLES];
 	//extern int *yytext;
+
+	FILE *js_file;
 %}
 
 %union{
@@ -57,8 +61,8 @@ char var_name[30];
 
 %%
 
-c_file      : {add_to_scope_stack("global");} BEFORE_MAIN MAIN LC {printf("function main(){\n"); add_to_scope_stack("main"); tab_counter++; } STATEMENTS RC { remove_from_scope_stack(); printf("}");printf("\n/*end of main function*/\n"); remove_from_scope_stack(); } 
-            | /*nothing*/ {printf("\n"); exit(2);}
+c_file      : {js_file = fopen(JSFILE, "a");add_to_scope_stack("global");} BEFORE_MAIN MAIN LC {printf("function main(){\n"); append_in_jsFile("function main(){\n");add_to_scope_stack("main"); tab_counter++; } STATEMENTS RC { remove_from_scope_stack(); printf("}\n");append_in_jsFile("}\n"); remove_from_scope_stack(); fclose(js_file);} 
+            | /*nothing*/ {append_in_jsFile("\n"); exit(2);}
             ;
 
 BEFORE_MAIN		: INCLUDE BEFORE_MAIN 
@@ -85,15 +89,15 @@ DECLARATION		: TYPE FUNCTION_DECLARATION
 			
 
 
-DEFINE_DECLARATION : DEFINE {insert_to_table(yylval.var_name,current_data_type);printf("const ");} VAR {printf("%s = ", yylval.var_name);} TERMINAL {printf(";\n");}
+DEFINE_DECLARATION : DEFINE {insert_to_table(yylval.var_name,current_data_type);append_in_jsFile("const ");} VAR {append_in_jsFile(yylval.var_name); append_in_jsFile(" = ");} TERMINAL {append_in_jsFile(";\n");}
 				   ;
 
-VAR_DECLARATION : VAR { insert_to_table(yylval.var_name,current_data_type); printf("let %s", yylval.var_name);} SEMICOLON_NT {printf("\n");}
-				| VAR { insert_to_table(yylval.var_name,current_data_type); printf("let %s", yylval.var_name);} ASSIGNMENT {printf(" = ");} TERMINAL SEMICOLON_NT {printf("\n");}
-				| VAR { insert_to_table(yylval.var_name,current_data_type); printf("let %s", yylval.var_name);} ARRAY_DIMENSION  ARRAY_ASSIGNMENT SEMICOLON_NT {printf("\n");}
+VAR_DECLARATION : VAR { insert_to_table(yylval.var_name,current_data_type); append_in_jsFile("let ");append_in_jsFile(yylval.var_name);} SEMICOLON_NT {append_in_jsFile("\n");}
+				| VAR { insert_to_table(yylval.var_name,current_data_type); append_in_jsFile("let ");append_in_jsFile( yylval.var_name);} ASSIGNMENT {append_in_jsFile(" = ");} TERMINAL SEMICOLON_NT {append_in_jsFile("\n");}
+				| VAR { insert_to_table(yylval.var_name,current_data_type); append_in_jsFile("let ");append_in_jsFile(yylval.var_name);} ARRAY_DIMENSION  ARRAY_ASSIGNMENT SEMICOLON_NT {append_in_jsFile("\n");}
 				;
 
-FUNCTION_DECLARATION	:  VAR { printf("function %s", yylval.var_name); add_to_scope_stack(yylval.var_name);} LP {printf("(");} PARAMETERS RP {printf(") ");} LC {printf(" {\n"); tab_counter++;} STATEMENTS RC {tab_counter--;print_tabs(); printf("}\n"); remove_from_scope_stack(); }
+FUNCTION_DECLARATION	:  VAR { append_in_jsFile("function ");append_in_jsFile(yylval.var_name); add_to_scope_stack(yylval.var_name);} LP {append_in_jsFile("(");} PARAMETERS RP {append_in_jsFile(") ");} LC {append_in_jsFile(" {\n"); tab_counter++;} STATEMENTS RC {tab_counter--;print_tabs(); append_in_jsFile("}\n"); remove_from_scope_stack(); }
 						;
 
 ARRAY_DIMENSION : LB ARRAY_SIZE RB ARRAY_DIMENSION
@@ -105,7 +109,7 @@ ARRAY_SIZE : NUMBER
 		   | /* nothing*/ 
 		   ;
 
-ARRAY_ASSIGNMENT	: ASSIGNMENT {printf(" = ");} // IN DEVELOPMENT
+ARRAY_ASSIGNMENT	: ASSIGNMENT {append_in_jsFile(" = ");} // IN DEVELOPMENT
 					| /*NO ASIGNMENT */
 					;
 
@@ -117,14 +121,14 @@ ARRAY_ASSIGNMENT	: ASSIGNMENT {printf(" = ");} // IN DEVELOPMENT
 	====================================================================
 */
 
-PARAMETERS	: TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
-			| COMA {printf(", ");} TYPE VAR {printf("%s", yylval.var_name);} PARAMETERS
+PARAMETERS	: TYPE VAR {append_in_jsFile(yylval.var_name);} PARAMETERS
+			| COMA {append_in_jsFile(", ");} TYPE VAR {append_in_jsFile(yylval.var_name);} PARAMETERS
 			| /*nothing*/ 
 			;
 
-EXPRESSION_DECLARATION_OR_NoDECL: TYPE VAR {printf("let %s", yylval.var_name);} ASSIGNMENT {printf(" = ");} EXPRESSION_NT
-								| VAR {printf("%s", yylval.var_name);} ASSIGNMENT {printf(" = ");} EXPRESSION_NT 
-								| VAR { printf("%s", yylval.var_name);}
+EXPRESSION_DECLARATION_OR_NoDECL: TYPE VAR {append_in_jsFile("let ");append_in_jsFile(yylval.var_name);} ASSIGNMENT {append_in_jsFile(" = ");} EXPRESSION_NT
+								| VAR {append_in_jsFile(yylval.var_name);} ASSIGNMENT {append_in_jsFile(" = ");} EXPRESSION_NT 
+								| VAR { append_in_jsFile(yylval.var_name);}
 								| EXPRESSION
 								| /*nothing*/  
 								;
@@ -137,8 +141,8 @@ FOR_BLOCK_PARAMETERS	: EXPRESSION_DECLARATION_OR_NoDECL SEMICOLON_OR_ERROR EXPRE
 	====================================================================
 */
 
-VAR_OR_FUNC_USE	: VAR { printf("%s",yylval.var_name); search_var_in_scope(yylval.var_name); } ASSIGNMENT {printf(" = ");} EXPRESSION_NT  SEMICOLON_NT { printf("\n");}
-				| /*for call a function*/VAR {printf("%s",yylval.var_name);}  LP { printf("("); } PARAMETERS RP { printf(")"); } SEMICOLON_NT { printf("\n");}
+VAR_OR_FUNC_USE	: VAR { append_in_jsFile(yylval.var_name); search_var_in_scope(yylval.var_name); } ASSIGNMENT {append_in_jsFile(" = ");} EXPRESSION_NT  SEMICOLON_NT { append_in_jsFile("\n");}
+				| /*for call a function*/VAR {append_in_jsFile(yylval.var_name);}  LP { append_in_jsFile("("); } PARAMETERS RP { append_in_jsFile(")"); } SEMICOLON_NT { append_in_jsFile("\n");}
 				| TYPE VAR_DECLARATION 
 				;
 
@@ -163,12 +167,12 @@ STATEMENTS  : {print_tabs();} VAR_OR_FUNC_USE STATEMENTS{}
 	=== IF / ELSE / ELSE IF   ====
 	====================================================================
 */
-IF_BLOCK    : IF LP {create_scope_2();printf("if (");} EXPRESSION_NT RP LC {  printf(") {\n"); tab_counter++;} STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n");} ELSEIF_OR_ELSE
+IF_BLOCK    : IF LP {create_scope_2();append_in_jsFile("if (");} EXPRESSION_NT RP LC {  append_in_jsFile(") {\n"); tab_counter++;} STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); append_in_jsFile("}\n");} ELSEIF_OR_ELSE
             ;
 
-ELSEIF_OR_ELSE 	: ELSEIF LP {create_scope_2();print_tabs(); printf("else if (");} EXPRESSION_NT	RP {printf(")");} LC {printf("{\n"); tab_counter++;} STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n"); } ELSEIF_OR_ELSE
-				| ELSE  LC {create_scope_2();print_tabs();tab_counter++;printf("else {\n"); } STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n"); }
-				| /* nothing, this is when end the if and there's no more else if or else */ {printf("\n");}
+ELSEIF_OR_ELSE 	: ELSEIF LP {create_scope_2();print_tabs(); append_in_jsFile("else if (");} EXPRESSION_NT	RP {append_in_jsFile(")");} LC {append_in_jsFile("{\n"); tab_counter++;} STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); append_in_jsFile("}\n"); } ELSEIF_OR_ELSE
+				| ELSE  LC {create_scope_2();print_tabs();tab_counter++;append_in_jsFile("else {\n"); } STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); append_in_jsFile("}\n"); }
+				| /* nothing, this is when end the if and there's no more else if or else */ {append_in_jsFile("\n");}
 
 /* 	
 	=====================================================================
@@ -176,21 +180,21 @@ ELSEIF_OR_ELSE 	: ELSEIF LP {create_scope_2();print_tabs(); printf("else if (");
 	====================================================================
 */
 
-FOR_BLOCK	: FOR LP {create_scope_2();printf("for(");} FOR_BLOCK_PARAMETERS RP LC {printf("){\n"); tab_counter++;} STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n");} // for(FOR_BLOCK_PARAMETERS){STATEMENTS}
+FOR_BLOCK	: FOR LP {create_scope_2();append_in_jsFile("for(");} FOR_BLOCK_PARAMETERS RP LC {append_in_jsFile("){\n"); tab_counter++;} STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); append_in_jsFile("}\n");} // for(FOR_BLOCK_PARAMETERS){STATEMENTS}
 			;
 
-WHILE_BLOCK : WHILE LP {create_scope_2();printf("while(");} EXPRESSION_NT RP LC {printf("){\n"); tab_counter++;} STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); printf("}\n"); }
+WHILE_BLOCK : WHILE LP {create_scope_2();append_in_jsFile("while(");} EXPRESSION_NT RP LC {append_in_jsFile("){\n"); tab_counter++;} STATEMENTS RC {remove_from_scope_stack();tab_counter--; print_tabs(); append_in_jsFile("}\n"); }
 			;
 
-DO_WHILE_BLOCK 	: DO LC {create_scope_2();printf("do{\n"); tab_counter++;} STATEMENTS RC WHILE LP {remove_from_scope_stack();tab_counter--;print_tabs(); printf("}while(");} EXPRESSION_NT RP {printf(")");} SEMICOLON_NT {printf("\n");}
+DO_WHILE_BLOCK 	: DO LC {create_scope_2();append_in_jsFile("do{\n"); tab_counter++;} STATEMENTS RC WHILE LP {remove_from_scope_stack();tab_counter--;print_tabs(); append_in_jsFile("}while(");} EXPRESSION_NT RP {append_in_jsFile(")");} SEMICOLON_NT {append_in_jsFile("\n");}
 				;
 
-TERMINAL	: NUMBER { printf("%s", yylval.var_name); }
-			| QUOTED_STRING { printf("%s", yylval.var_name); }
+TERMINAL	: NUMBER { append_in_jsFile( yylval.var_name); }
+			| QUOTED_STRING { append_in_jsFile( yylval.var_name); }
 			;
 			
-COMMENT     : ILCOMMENT     { printf("%s\n", yylval.var_name); }
-            | MLCOMMENT     { printf("%s", yylval.var_name); }
+COMMENT     : ILCOMMENT     { append_in_jsFile( yylval.var_name); append_in_jsFile("\n");}
+            | MLCOMMENT     { append_in_jsFile(yylval.var_name); }
             ;
 
 TYPE		: INT 		{ $$=$1; current_data_type=$1;  }
@@ -204,30 +208,30 @@ TYPE		: INT 		{ $$=$1; current_data_type=$1;  }
 	=== Expression e.g -> a == 2 , var1 && var2, compare things like 2 <= 3 or math operations like 2 + 3 ===
 	===========================*/
 			// comparison operators first
-EXPRESSION  : EXPRESSION  EQ {printf("== ");} EXPRESSION
- 			| EXPRESSION NEQ {printf("!= ");} EXPRESSION
-			| EXPRESSION GT {printf("> ");} EXPRESSION
-			| EXPRESSION LT {printf("< ");} EXPRESSION
-			| EXPRESSION LEQ {printf("<= ");} EXPRESSION			
-			| EXPRESSION GEQ {printf(">= ");} EXPRESSION
+EXPRESSION  : EXPRESSION  EQ {append_in_jsFile("== ");} EXPRESSION
+ 			| EXPRESSION NEQ {append_in_jsFile("!= ");} EXPRESSION
+			| EXPRESSION GT {append_in_jsFile("> ");} EXPRESSION
+			| EXPRESSION LT {append_in_jsFile("< ");} EXPRESSION
+			| EXPRESSION LEQ {append_in_jsFile("<= ");} EXPRESSION			
+			| EXPRESSION GEQ {append_in_jsFile(">= ");} EXPRESSION
 			// logical operators
-			| EXPRESSION LAND {printf("&& ");} EXPRESSION
-			| EXPRESSION LOR {printf("|| ");} EXPRESSION
-			| LNOT {printf("!");} EXPRESSION
+			| EXPRESSION LAND {append_in_jsFile("&& ");} EXPRESSION
+			| EXPRESSION LOR {append_in_jsFile("|| ");} EXPRESSION
+			| LNOT {append_in_jsFile("!");} EXPRESSION
 			// Math operators
-			| EXPRESSION PLUS {printf("+ ");} EXPRESSION
-			| EXPRESSION MINUS {printf("- ");} EXPRESSION
-			| EXPRESSION MUL {printf("* ");} EXPRESSION
-			| EXPRESSION DIV {printf("/ ");} EXPRESSION
-			| EXPRESSION MOD {printf("%% ");} EXPRESSION // for % mod symbol
-			| EXPRESSION PLUS PLUS {printf("++");} // for x++
-			| PLUS PLUS {printf("++");} EXPRESSION // for ++x
-			| EXPRESSION MINUS MINUS {printf("--");}
-			| MINUS MINUS {printf("--");} EXPRESSION 
+			| EXPRESSION PLUS {append_in_jsFile("+ ");} EXPRESSION
+			| EXPRESSION MINUS {append_in_jsFile("- ");} EXPRESSION
+			| EXPRESSION MUL {append_in_jsFile("* ");} EXPRESSION
+			| EXPRESSION DIV {append_in_jsFile("/ ");} EXPRESSION
+			| EXPRESSION MOD {append_in_jsFile("%% ");} EXPRESSION // for % mod symbol
+			| EXPRESSION PLUS PLUS {append_in_jsFile("++");} // for x++
+			| PLUS PLUS {append_in_jsFile("++");} EXPRESSION // for ++x
+			| EXPRESSION MINUS MINUS {append_in_jsFile("--");}
+			| MINUS MINUS {append_in_jsFile("--");} EXPRESSION 
 			// For some expresions inside in a parenthesis
-			| LP {printf("(");} EXPRESSION RP {printf(") ");}
+			| LP {append_in_jsFile("(");} EXPRESSION RP {append_in_jsFile(") ");}
 			// terminals and vars
-			| VAR {printf("%s", yylval.var_name);}
+			| VAR {append_in_jsFile( yylval.var_name);}
 			// add later for arrays vars
 			| TERMINAL
             ;/*in develop*/
@@ -237,18 +241,18 @@ EXPRESSION  : EXPRESSION  EQ {printf("== ");} EXPRESSION
 	/* =========================
 	=== FOR HANDLING ERRORES ===
 	===========================*/
-SEMICOLON_NT: SEMICOLON { printf(";");}
+SEMICOLON_NT: SEMICOLON { append_in_jsFile(";");}
 			| /*nothing*/ {yyerror("syntax error : missing ';'\n");}
 			;
 
-SEMICOLON_OR_ERROR: SEMICOLON { printf(";");}
-				  | COMA { printf(","); printf("\nSYNTAX_ERROR: You put a ',', must be a ';'!\n");}
-				  | COLON { printf(":"); printf("\nSYNTAX_ERROR: You put a ':', must be a ';'!\n");}
+SEMICOLON_OR_ERROR: SEMICOLON { append_in_jsFile(";");}
+				  | COMA { append_in_jsFile(","); append_in_jsFile("\nSYNTAX_ERROR: You put a ',', must be a ';'!\n");}
+				  | COLON { append_in_jsFile(":"); append_in_jsFile("\nSYNTAX_ERROR: You put a ':', must be a ';'!\n");}
 				  ;
 
 EXPRESSION_NT: EXPRESSION
-			 | VAR ASSIGNMENT { printf("%s ", yylval.var_name); printf("= ");} EXPRESSION
-			 | EXPRESSION ASSIGNMENT {printf("= ");} EXPRESSION {yyerror("Maybe you mean '==' operator?");}
+			 | VAR ASSIGNMENT { append_in_jsFile(yylval.var_name); append_in_jsFile("= ");} EXPRESSION
+			 | EXPRESSION ASSIGNMENT {append_in_jsFile("= ");} EXPRESSION {yyerror("Maybe you mean '==' operator?");}
 			 | /* nothing */ {yyerror("expected expression before the token");}
 			 ;
 
@@ -259,12 +263,16 @@ DELIMITER : SEMICOLON
 
 #include "lex.yy.c"
 
+void append_in_jsFile(char *s){
+	fputs(s, js_file);
+}
+
 void add_to_scope_stack(char newScopeName[VAR_NAME_LEN]){
 	if(scopeStackCounter < SCOPE_SIZE){
 		scopeStackCounter++;
 		strcpy(scopeStack[scopeStackCounter], newScopeName);
 	}else{
-		printf("NO MORE SPACE IN SCOPE STACK ARRAY!");
+		append_in_jsFile("NO MORE SPACE IN SCOPE STACK ARRAY!");
 		yyerror("NO MORE SPACE IN SCOPE STACK ARRAY!");
 		exit(0);
 	}
@@ -288,6 +296,8 @@ int search_var_in_scope(char var[VAR_NAME_LEN]){
 	}
 
 	printf("'%s' was not declared in the scope \n", var);
+	
+	append_in_jsFile(" was not declared in the scope \n");
 	return idx;
 	
 
@@ -334,18 +344,23 @@ void insert_to_table(char var[VAR_NAME_LEN], int type)
 	}
 	else {
 		printf("'%s' has multiple declaration of the variable\n", var);
+		append_in_jsFile(var);
+		append_in_jsFile( " has multiple declaration of the variable\n");
 		yyerror("");
 		/* exit(0); */
 	}
 }
 void print_tabs() {
 	for(int i = 0; i < tab_counter; i++){
-		printf("\t");
+		append_in_jsFile("\t");
 	}
 	return;
 }
 
 int main() {
+	// Limpiamos el archivo donde queda la traduccion
+	js_file = fopen(JSFILE, "w");
+	fclose(js_file);
 	yyparse();
     
 	return 0;
@@ -354,6 +369,8 @@ int main() {
 int yyerror(const char *msg) {
 	extern int yylineno;
 	printf("Parsing failed\nLine number: %d %s\n", yylineno, msg);
+	append_in_jsFile("Parsing failed\nLine number: ");
+	append_in_jsFile(yylineno);append_in_jsFile(" ");append_in_jsFile(msg); append_in_jsFile("\n");
 	success = 0;
 	return 0;
 }
