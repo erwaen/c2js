@@ -8,6 +8,7 @@
 	#define VAR_NAME_LEN 32
 	#define CANT_VARIABLES 50
 	#define SCOPE_SIZE 50
+	#define NOVALUE -99
 	int yylex(void);
 	int yyerror(const char *s);
 	int success = 1;
@@ -24,8 +25,13 @@
 	extern int lookup_in_table(char var[VAR_NAME_LEN]);
 	extern void insert_to_table(char var[VAR_NAME_LEN], int type);
 	extern void print_tabs();
+	extern void anhadirExpresion(char type);
 	char var_list[CANT_VARIABLES][VAR_NAME_LEN];	
 	int string_or_var[CANT_VARIABLES];
+
+	int lVarType = NOVALUE; // Guarda el tipo  de dato de la variable del lado izquierdo de una asignacion (si es -1 es porque no guarda nada)
+	char expresion[200]; // para guardar los tipos de datos de la expresion del lado derecho  es decir 2+2 se guardaria '0' ya que es un int
+	int topeExpresion = 0; // el tope o indice actual del vector expresion
 	//extern int *yytext;
 
 	FILE *js_file;
@@ -39,7 +45,7 @@ char var_name[30];
 %token VAR
 %token LNOT LOR LAND LEQ GEQ LT GT NEQ EQ PLUS MINUS MUL DIV MOD ASSIGNMENT
 %token MAIN VOID RETURN BREAK CONTINUE FOR DO WHILE IF ELSE ELSEIF PRINTF DEFINE INCLUDE
-%token NUMBER QUOTED_STRING 
+%token NUMBER QUOTED_STRING  QUOTED_CHAR
 %token LC RC COMA RB LB RP LP SEMICOLON COLON QM 
 %token ILCOMMENT MLCOMMENT
 
@@ -61,7 +67,7 @@ char var_name[30];
 
 %%
 
-c_file      : {js_file = fopen(JSFILE, "a");add_to_scope_stack("global");} BEFORE_MAIN MAIN LC {printf("function main(){\n"); append_in_jsFile("function main(){\n");add_to_scope_stack("main"); tab_counter++; } STATEMENTS RC { remove_from_scope_stack(); printf("}\n");append_in_jsFile("}\n"); remove_from_scope_stack(); fclose(js_file);} 
+c_file      : {js_file = fopen(JSFILE, "a");add_to_scope_stack("global");} BEFORE_MAIN MAIN LC { append_in_jsFile("function main(){\n");add_to_scope_stack("main"); tab_counter++; } STATEMENTS RC { remove_from_scope_stack(); append_in_jsFile("}\n"); remove_from_scope_stack(); fclose(js_file);} 
             | /*nothing*/ {append_in_jsFile("\n"); exit(2);}
             ;
 
@@ -141,7 +147,7 @@ FOR_BLOCK_PARAMETERS	: EXPRESSION_DECLARATION_OR_NoDECL SEMICOLON_OR_ERROR EXPRE
 	====================================================================
 */
 
-VAR_OR_FUNC_USE	: VAR { append_in_jsFile(yylval.var_name); search_var_in_scope(yylval.var_name); } ASSIGNMENT {append_in_jsFile(" = ");} EXPRESSION_NT  SEMICOLON_NT { append_in_jsFile("\n");}
+VAR_OR_FUNC_USE	: VAR { append_in_jsFile(yylval.var_name); search_var_in_scope(yylval.var_name); lVarType = lookup_in_table(yylval.var_name);} ASSIGNMENT {append_in_jsFile(" = ");} EXPRESSION_NT {verificarTipo();} SEMICOLON_NT { append_in_jsFile("\n");}
 				| /*for call a function*/VAR {append_in_jsFile(yylval.var_name);}  LP { append_in_jsFile("("); } PARAMETERS RP { append_in_jsFile(")"); } SEMICOLON_NT { append_in_jsFile("\n");}
 				| TYPE VAR_DECLARATION 
 				;
@@ -189,8 +195,9 @@ WHILE_BLOCK : WHILE LP {create_scope_2();append_in_jsFile("while(");} EXPRESSION
 DO_WHILE_BLOCK 	: DO LC {create_scope_2();append_in_jsFile("do{\n"); tab_counter++;} STATEMENTS RC WHILE LP {remove_from_scope_stack();tab_counter--;print_tabs(); append_in_jsFile("}while(");} EXPRESSION_NT RP {append_in_jsFile(")");} SEMICOLON_NT {append_in_jsFile("\n");}
 				;
 
-TERMINAL	: NUMBER { append_in_jsFile( yylval.var_name); }
-			| QUOTED_STRING { append_in_jsFile( yylval.var_name); }
+TERMINAL	: NUMBER { append_in_jsFile( yylval.var_name); anhadirExpresion(ES_INT + 48); }
+			| QUOTED_CHAR { append_in_jsFile(yylval.var_name); anhadirExpresion(ES_CHAR + 48); }
+			| QUOTED_STRING { append_in_jsFile( yylval.var_name); anhadirExpresion(ES_STRING + 48);}
 			;
 			
 COMMENT     : ILCOMMENT     { append_in_jsFile( yylval.var_name); append_in_jsFile("\n");}
@@ -208,30 +215,30 @@ TYPE		: INT 		{ $$=$1; current_data_type=$1;  }
 	=== Expression e.g -> a == 2 , var1 && var2, compare things like 2 <= 3 or math operations like 2 + 3 ===
 	===========================*/
 			// comparison operators first
-EXPRESSION  : EXPRESSION  EQ {append_in_jsFile("== ");} EXPRESSION
- 			| EXPRESSION NEQ {append_in_jsFile("!= ");} EXPRESSION
-			| EXPRESSION GT {append_in_jsFile("> ");} EXPRESSION
-			| EXPRESSION LT {append_in_jsFile("< ");} EXPRESSION
-			| EXPRESSION LEQ {append_in_jsFile("<= ");} EXPRESSION			
-			| EXPRESSION GEQ {append_in_jsFile(">= ");} EXPRESSION
+EXPRESSION  : EXPRESSION  EQ {append_in_jsFile(" == ");} EXPRESSION
+ 			| EXPRESSION NEQ {append_in_jsFile(" != ");} EXPRESSION
+			| EXPRESSION GT {append_in_jsFile(" > ");} EXPRESSION
+			| EXPRESSION LT {append_in_jsFile(" < ");} EXPRESSION
+			| EXPRESSION LEQ {append_in_jsFile(" <= ");} EXPRESSION			
+			| EXPRESSION GEQ {append_in_jsFile(" >= ");} EXPRESSION
 			// logical operators
-			| EXPRESSION LAND {append_in_jsFile("&& ");} EXPRESSION
-			| EXPRESSION LOR {append_in_jsFile("|| ");} EXPRESSION
+			| EXPRESSION LAND {append_in_jsFile(" && ");} EXPRESSION
+			| EXPRESSION LOR {append_in_jsFile(" || ");} EXPRESSION
 			| LNOT {append_in_jsFile("!");} EXPRESSION
 			// Math operators
-			| EXPRESSION PLUS {append_in_jsFile("+ ");} EXPRESSION
-			| EXPRESSION MINUS {append_in_jsFile("- ");} EXPRESSION
-			| EXPRESSION MUL {append_in_jsFile("* ");} EXPRESSION
-			| EXPRESSION DIV {append_in_jsFile("/ ");} EXPRESSION
-			| EXPRESSION MOD {append_in_jsFile("%% ");} EXPRESSION // for % mod symbol
-			| EXPRESSION PLUS PLUS {append_in_jsFile("++");} // for x++
+			| EXPRESSION PLUS {append_in_jsFile(" + ");anhadirExpresion('+');} EXPRESSION
+			| EXPRESSION MINUS {append_in_jsFile(" - ");anhadirExpresion('-');} EXPRESSION
+			| EXPRESSION MUL {append_in_jsFile(" * ");anhadirExpresion('*');} EXPRESSION
+			| EXPRESSION DIV {append_in_jsFile(" / ");anhadirExpresion('/');} EXPRESSION
+			| EXPRESSION MOD {append_in_jsFile(" %% ");} EXPRESSION // for % mod symbol
+			| EXPRESSION PLUS PLUS {append_in_jsFile(" ++");} // for x++
 			| PLUS PLUS {append_in_jsFile("++");} EXPRESSION // for ++x
 			| EXPRESSION MINUS MINUS {append_in_jsFile("--");}
 			| MINUS MINUS {append_in_jsFile("--");} EXPRESSION 
 			// For some expresions inside in a parenthesis
-			| LP {append_in_jsFile("(");} EXPRESSION RP {append_in_jsFile(") ");}
+			| LP {append_in_jsFile("(");anhadirExpresion('(');} EXPRESSION RP {append_in_jsFile(") ");anhadirExpresion(')');}
 			// terminals and vars
-			| VAR {append_in_jsFile( yylval.var_name);}
+			| VAR {append_in_jsFile( yylval.var_name); search_var_in_scope(yylval.var_name); anhadirExpresion(lookup_in_table(yylval.var_name)+ 48);}
 			// add later for arrays vars
 			| TERMINAL
             ;/*in develop*/
@@ -262,6 +269,27 @@ DELIMITER : SEMICOLON
 %%
 
 #include "lex.yy.c"
+
+
+void verificarTipo(){
+	if(lVarType == NOVALUE){
+		lVarType = current_data_type; 
+	}else{
+		lVarType = lVarType;
+	}
+
+	/* while(topeExpresion > 0){
+
+	} */
+	
+}
+
+void anhadirExpresion(char type){
+	expresion[topeExpresion]=type;
+	topeExpresion++;
+	
+}
+
 
 void append_in_jsFile(char *s){
 	fputs(s, js_file);

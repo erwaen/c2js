@@ -2,6 +2,7 @@
 #define ES_CHAR 1
 #define ES_FLOAT 2
 #define ES_DOUBLE 3
+#define ES_STRING 5
 
 #define TIPO_ERROR -1
 

@@ -3,7 +3,8 @@
 
 
 int a = 1;
-
+int b;
+int c;
 void hola (int a, int b){
     if ( a == b) {
         a = 2;
