@@ -4,7 +4,9 @@ int main(){
 
         if (a==2){
             a = 2;
-            int b;     
+            int b; 
+            break;    
         }
+        
     }
 }

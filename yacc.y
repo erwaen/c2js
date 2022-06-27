@@ -15,6 +15,7 @@
 	int temp;
 	int idx = 0;
 	int table_idx = 0;
+	int table_idFunction = 0;
 	int tab_counter = 0;
 	int current_data_type;
 	char scopeStack[SCOPE_SIZE][CANT_VARIABLES];
@@ -22,6 +23,8 @@
 	int scopeStackCounter = -1;
 	char for_var[VAR_NAME_LEN];
 	struct symbol_table{char var_name[VAR_NAME_LEN]; int type; char scopeName[VAR_NAME_LEN] ;} sym[CANT_VARIABLES];
+	struct function_table{char var_name[VAR_NAME_LEN]; int type; int type_params[CANT_VARIABLES];int counter_type_params;int is_def;} fun[VAR_NAME_LEN];
+
 	extern int lookup_in_table(char var[VAR_NAME_LEN]);
 	extern void insert_to_table(char var[VAR_NAME_LEN], int type);
 	extern void print_tabs();
@@ -81,9 +84,22 @@ BEFORE_MAIN		: INCLUDE BEFORE_MAIN
 
 
 
+/* 	
+	=====================================================================
+	=== PRINT | SCANF   ====
+	====================================================================
+*/
+				
+PRINTF_SCANF : PRINTF {append_in_jsFile("console.log");} LP  {append_in_jsFile("(");} QUOTED_CHAR_OR_STRING RP {append_in_jsFile(")");}	 SEMICOLON_NT {append_in_jsFile("\n");}
+		     ;
 
-					
+RETURN_CONT_BREAK : RETURN {append_in_jsFile("return");} EXPRESSION_NT SEMICOLON_NT
+				  | BREAK   {append_in_jsFile("break");}  SEMICOLON_NT
+				  | CONTINUE {append_in_jsFile("continue");}  SEMICOLON_NT
+				  ;
 
+QUOTED_CHAR_OR_STRING : QUOTED_STRING  {append_in_jsFile(yylval.var_name);}
+				| 	  ; /* Quoted char no hay en print de c */
 
 /* ===========================================================
 	===  DECLARATIONS  (FOR VAR AND FUNCTIONS and #DEFINE) ===
@@ -100,24 +116,23 @@ DEFINE_DECLARATION : DEFINE {insert_to_table(yylval.var_name,current_data_type);
 
 VAR_DECLARATION : VAR { insert_to_table(yylval.var_name,current_data_type); append_in_jsFile("let ");append_in_jsFile(yylval.var_name);} SEMICOLON_NT {append_in_jsFile("\n");}
 				| VAR { insert_to_table(yylval.var_name,current_data_type); append_in_jsFile("let ");append_in_jsFile( yylval.var_name);} ASSIGNMENT {append_in_jsFile(" = ");} TERMINAL SEMICOLON_NT {append_in_jsFile("\n");}
-				| VAR { insert_to_table(yylval.var_name,current_data_type); append_in_jsFile("let ");append_in_jsFile(yylval.var_name);} ARRAY_DIMENSION  ARRAY_ASSIGNMENT SEMICOLON_NT {append_in_jsFile("\n");}
+				| VAR { insert_to_table(yylval.var_name,current_data_type); append_in_jsFile("let ");append_in_jsFile(yylval.var_name);} ARRAY_DIMENSION {append_in_jsFile(" = []");} SEMICOLON_NT {append_in_jsFile("\n");}
 				;
 
-FUNCTION_DECLARATION	:  VAR { append_in_jsFile("function ");append_in_jsFile(yylval.var_name); add_to_scope_stack(yylval.var_name);} LP {append_in_jsFile("(");} PARAMETERS RP {append_in_jsFile(") ");} LC {append_in_jsFile(" {\n"); tab_counter++;} STATEMENTS RC {tab_counter--;print_tabs(); append_in_jsFile("}\n"); remove_from_scope_stack(); }
+FUNCTION_DECLARATION	:  VAR { append_in_jsFile("function ");append_in_jsFile(yylval.var_name); add_to_scope_stack(yylval.var_name); agregarFuncion(yylval.var_name, current_data_type, 1);} LP {append_in_jsFile("(");} PARAMETERS RP {append_in_jsFile(") ");} LC {append_in_jsFile(" {\n"); tab_counter++;} STATEMENTS RC {tab_counter--;print_tabs(); append_in_jsFile("}\n"); remove_from_scope_stack(); }
 						;
 
 ARRAY_DIMENSION : LB ARRAY_SIZE RB ARRAY_DIMENSION
-				| LB ARRAY_SIZE RB 
+				| /*nothing*/
 				;
 
 ARRAY_SIZE : NUMBER 
-		   | VAR
-		   | /* nothing*/ 
 		   ;
 
-ARRAY_ASSIGNMENT	: ASSIGNMENT {append_in_jsFile(" = ");} // IN DEVELOPMENT
-					| /*NO ASIGNMENT */
-					;
+
+ARRAY_DIMENSION_WRITE : LB { append_in_jsFile("[");}NUMBER { append_in_jsFile(yylval.var_name);} RB{ append_in_jsFile("]");} ARRAY_DIMENSION_WRITE
+				| /*nothing*/
+				;
 
 
 
@@ -131,6 +146,11 @@ PARAMETERS	: TYPE VAR {append_in_jsFile(yylval.var_name);} PARAMETERS
 			| COMA {append_in_jsFile(", ");} TYPE VAR {append_in_jsFile(yylval.var_name);} PARAMETERS
 			| /*nothing*/ 
 			;
+
+ARGUMENTS 	: VAR {append_in_jsFile(yylval.var_name);} ARGUMENTS
+			| COMA {append_in_jsFile(", ");} VAR {append_in_jsFile(yylval.var_name);} PARAMETERS
+			| /*nothing*/ 
+			; 
 
 EXPRESSION_DECLARATION_OR_NoDECL: TYPE VAR {append_in_jsFile("let ");append_in_jsFile(yylval.var_name);} ASSIGNMENT {append_in_jsFile(" = ");} EXPRESSION_NT
 								| VAR {append_in_jsFile(yylval.var_name);} ASSIGNMENT {append_in_jsFile(" = ");} EXPRESSION_NT 
@@ -148,7 +168,8 @@ FOR_BLOCK_PARAMETERS	: EXPRESSION_DECLARATION_OR_NoDECL SEMICOLON_OR_ERROR EXPRE
 */
 
 VAR_OR_FUNC_USE	: VAR { append_in_jsFile(yylval.var_name); search_var_in_scope(yylval.var_name); lVarType = lookup_in_table(yylval.var_name);} ASSIGNMENT {append_in_jsFile(" = ");} EXPRESSION_NT {verificarTipo();} SEMICOLON_NT { append_in_jsFile("\n");}
-				| /*for call a function*/VAR {append_in_jsFile(yylval.var_name);}  LP { append_in_jsFile("("); } PARAMETERS RP { append_in_jsFile(")"); } SEMICOLON_NT { append_in_jsFile("\n");}
+				| /*for call a function*/VAR {append_in_jsFile(yylval.var_name); agregarFuncion(yylval.var_name,current_data_type,0);}  LP { append_in_jsFile("("); } ARGUMENTS RP { append_in_jsFile(")"); } SEMICOLON_NT { append_in_jsFile("\n");}
+				| VAR { append_in_jsFile(yylval.var_name); search_var_in_scope(yylval.var_name);} ARRAY_DIMENSION_WRITE  ASSIGNMENT {append_in_jsFile(" = ");} EXPRESSION_NT {verificarTipo();} SEMICOLON_NT {append_in_jsFile("\n");}
 				| TYPE VAR_DECLARATION 
 				;
 
@@ -163,7 +184,9 @@ STATEMENTS  : {print_tabs();} VAR_OR_FUNC_USE STATEMENTS{}
 			| {print_tabs();} WHILE_BLOCK STATEMENTS {}
 			| {print_tabs();} DO_WHILE_BLOCK STATEMENTS {}
 			| {print_tabs();} FOR_BLOCK STATEMENTS{}
+			| {print_tabs();} PRINTF_SCANF STATEMENTS{}
             | {print_tabs();} COMMENT STATEMENTS{}
+			| {print_tabs();} RETURN_CONT_BREAK{}
 			| error DELIMITER BEFORE_MAIN
             | /* */ { }
             ;
@@ -288,6 +311,16 @@ void anhadirExpresion(char type){
 	expresion[topeExpresion]=type;
 	topeExpresion++;
 	
+}
+
+void agregarFuncion(char var[VAR_NAME_LEN], int type,int is_def)
+{	
+		strcpy(fun[table_idFunction].var_name,var);
+		fun[table_idFunction].type = type;
+		fun[table_idFunction].is_def = is_def;
+		table_idFunction++;
+		
+
 }
 
 

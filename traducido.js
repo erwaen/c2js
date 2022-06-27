@@ -1,24 +1,10 @@
-const HOLA = "gsd";
-let a = 1;
-let b;
-let c;
-function hola(a, b)  {
-	if (a == b) {
-		a = 2;
-	}
-	else if (b == c){
-		a = 3;
-	}
-	else {
-		a = 4;
-	}
-}
+let g;
+let e = [];
+let f = [];
 function main(){
-	//hola
-	if (!(a ++) ) {
-	}
-	else if ((!(a ++) ) ){
-	}
-	else {
-	}
+	let a;
+	let b = [];
+	let c = [];
+	b[0] = 1;
+	c[0][0] = a;
 }

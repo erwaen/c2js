@@ -5,7 +5,8 @@
 int a = 1;
 int b;
 int c;
-void hola (int a, int b){
+
+void hola(int a, int b){
     if ( a == b) {
         a = 2;
     }else if( b == c){
@@ -14,7 +15,7 @@ void hola (int a, int b){
     else{
         a=4;
     }
-    
+
 }
 
 
@@ -22,11 +23,12 @@ void hola (int a, int b){
 
 int main(){
     //hola
-
+    hola(a, b);
     if (!(a++)){
-
+        printf("1213");
     }else if((!(a++))){
-
+        printf("xdxd");
+        
     }else{
         
     }
