@@ -70,7 +70,7 @@ char var_name[30];
 
 %%
 
-c_file      : {js_file = fopen(JSFILE, "a");add_to_scope_stack("global");} BEFORE_MAIN MAIN LC { append_in_jsFile("function main(){\n");add_to_scope_stack("main"); tab_counter++; } STATEMENTS RC { remove_from_scope_stack(); append_in_jsFile("}\n"); remove_from_scope_stack(); fclose(js_file);} 
+c_file      : {js_file = fopen(JSFILE, "a");add_to_scope_stack("global");} BEFORE_MAIN MAIN LC { append_in_jsFile("function main(){\n");add_to_scope_stack("main"); tab_counter++; } STATEMENTS RC { remove_from_scope_stack(); append_in_jsFile("}\n"); append_in_jsFile("main();\n"); remove_from_scope_stack(); fclose(js_file);} 
             | /*nothing*/ {append_in_jsFile("\n"); exit(2);}
             ;
 
@@ -93,9 +93,9 @@ BEFORE_MAIN		: INCLUDE BEFORE_MAIN
 PRINTF_SCANF : PRINTF {append_in_jsFile("console.log");} LP  {append_in_jsFile("(");} QUOTED_CHAR_OR_STRING RP {append_in_jsFile(")");}	 SEMICOLON_NT {append_in_jsFile("\n");}
 		     ;
 
-RETURN_CONT_BREAK : RETURN {append_in_jsFile("return");} EXPRESSION_NT SEMICOLON_NT
-				  | BREAK   {append_in_jsFile("break");}  SEMICOLON_NT
-				  | CONTINUE {append_in_jsFile("continue");}  SEMICOLON_NT
+RETURN_CONT_BREAK : RETURN {append_in_jsFile("return ");} EXPRESSION_NT SEMICOLON_NT {append_in_jsFile("\n");}
+				  | BREAK   {append_in_jsFile("break");}  SEMICOLON_NT {append_in_jsFile("\n");}
+				  | CONTINUE {append_in_jsFile("continue");}  SEMICOLON_NT {append_in_jsFile("\n");}
 				  ;
 
 QUOTED_CHAR_OR_STRING : QUOTED_STRING  {append_in_jsFile(yylval.var_name);}
@@ -428,10 +428,10 @@ int main() {
 }
 
 int yyerror(const char *msg) {
+	char error_mensaje[200];
 	extern int yylineno;
-	printf("Parsing failed\nLine number: %d %s\n", yylineno, msg);
-	append_in_jsFile("Parsing failed\nLine number: ");
-	append_in_jsFile(yylineno);append_in_jsFile(" ");append_in_jsFile(msg); append_in_jsFile("\n");
-	success = 0;
+	sprintf(error_mensaje,"\n****************\nParsing failed Line number: %d %s\n****************\n", yylineno, msg);
+	
+	append_in_jsFile(error_mensaje); 
 	return 0;
 }

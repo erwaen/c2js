@@ -1678,7 +1678,7 @@ yyreduce:
 
   case 4: /* c_file: $@1 BEFORE_MAIN MAIN LC $@2 STATEMENTS RC  */
 #line 73 "yacc.y"
-                                                                                                                                                                                                   { remove_from_scope_stack(); append_in_jsFile("}\n"); remove_from_scope_stack(); fclose(js_file);}
+                                                                                                                                                                                                   { remove_from_scope_stack(); append_in_jsFile("}\n"); append_in_jsFile("main();\n"); remove_from_scope_stack(); fclose(js_file);}
 #line 1683 "y.tab.c"
     break;
 
@@ -1720,744 +1720,762 @@ yyreduce:
 
   case 16: /* $@6: %empty  */
 #line 96 "yacc.y"
-                           {append_in_jsFile("return");}
+                           {append_in_jsFile("return ");}
 #line 1725 "y.tab.c"
+    break;
+
+  case 17: /* RETURN_CONT_BREAK: RETURN $@6 EXPRESSION_NT SEMICOLON_NT  */
+#line 96 "yacc.y"
+                                                                                     {append_in_jsFile("\n");}
+#line 1731 "y.tab.c"
     break;
 
   case 18: /* $@7: %empty  */
 #line 97 "yacc.y"
                                             {append_in_jsFile("break");}
-#line 1731 "y.tab.c"
+#line 1737 "y.tab.c"
+    break;
+
+  case 19: /* RETURN_CONT_BREAK: BREAK $@7 SEMICOLON_NT  */
+#line 97 "yacc.y"
+                                                                                       {append_in_jsFile("\n");}
+#line 1743 "y.tab.c"
     break;
 
   case 20: /* $@8: %empty  */
 #line 98 "yacc.y"
                                              {append_in_jsFile("continue");}
-#line 1737 "y.tab.c"
+#line 1749 "y.tab.c"
+    break;
+
+  case 21: /* RETURN_CONT_BREAK: CONTINUE $@8 SEMICOLON_NT  */
+#line 98 "yacc.y"
+                                                                                           {append_in_jsFile("\n");}
+#line 1755 "y.tab.c"
     break;
 
   case 22: /* QUOTED_CHAR_OR_STRING: QUOTED_STRING  */
 #line 101 "yacc.y"
                                        {append_in_jsFile(yylval.var_name);}
-#line 1743 "y.tab.c"
+#line 1761 "y.tab.c"
     break;
 
   case 26: /* $@9: %empty  */
 #line 114 "yacc.y"
                             {insert_to_table(yylval.var_name,current_data_type);append_in_jsFile("const ");}
-#line 1749 "y.tab.c"
+#line 1767 "y.tab.c"
     break;
 
   case 27: /* $@10: %empty  */
 #line 114 "yacc.y"
                                                                                                                  {append_in_jsFile(yylval.var_name); append_in_jsFile(" = ");}
-#line 1755 "y.tab.c"
+#line 1773 "y.tab.c"
     break;
 
   case 28: /* DEFINE_DECLARATION: DEFINE $@9 VAR $@10 TERMINAL  */
 #line 114 "yacc.y"
                                                                                                                                                                                         {append_in_jsFile(";\n");}
-#line 1761 "y.tab.c"
+#line 1779 "y.tab.c"
     break;
 
   case 29: /* $@11: %empty  */
 #line 117 "yacc.y"
                       { insert_to_table(yylval.var_name,current_data_type); append_in_jsFile("let ");append_in_jsFile(yylval.var_name);}
-#line 1767 "y.tab.c"
+#line 1785 "y.tab.c"
     break;
 
   case 30: /* VAR_DECLARATION: VAR $@11 SEMICOLON_NT  */
 #line 117 "yacc.y"
                                                                                                                                                       {append_in_jsFile("\n");}
-#line 1773 "y.tab.c"
+#line 1791 "y.tab.c"
     break;
 
   case 31: /* $@12: %empty  */
 #line 118 "yacc.y"
                                       { insert_to_table(yylval.var_name,current_data_type); append_in_jsFile("let ");append_in_jsFile( yylval.var_name);}
-#line 1779 "y.tab.c"
+#line 1797 "y.tab.c"
     break;
 
   case 32: /* $@13: %empty  */
 #line 118 "yacc.y"
                                                                                                                                                                      {append_in_jsFile(" = ");}
-#line 1785 "y.tab.c"
+#line 1803 "y.tab.c"
     break;
 
   case 33: /* VAR_DECLARATION: VAR $@12 ASSIGNMENT $@13 TERMINAL SEMICOLON_NT  */
 #line 118 "yacc.y"
                                                                                                                                                                                                                       {append_in_jsFile("\n");}
-#line 1791 "y.tab.c"
+#line 1809 "y.tab.c"
     break;
 
   case 34: /* $@14: %empty  */
 #line 119 "yacc.y"
                                       { insert_to_table(yylval.var_name,current_data_type); append_in_jsFile("let ");append_in_jsFile(yylval.var_name);}
-#line 1797 "y.tab.c"
+#line 1815 "y.tab.c"
     break;
 
   case 35: /* $@15: %empty  */
 #line 119 "yacc.y"
                                                                                                                                                                          {append_in_jsFile(" = []");}
-#line 1803 "y.tab.c"
+#line 1821 "y.tab.c"
     break;
 
   case 36: /* VAR_DECLARATION: VAR $@14 ARRAY_DIMENSION $@15 SEMICOLON_NT  */
 #line 119 "yacc.y"
                                                                                                                                                                                                                    {append_in_jsFile("\n");}
-#line 1809 "y.tab.c"
+#line 1827 "y.tab.c"
     break;
 
   case 37: /* $@16: %empty  */
 #line 122 "yacc.y"
                                { append_in_jsFile("function ");append_in_jsFile(yylval.var_name); add_to_scope_stack(yylval.var_name); agregarFuncion(yylval.var_name, current_data_type, 1);}
-#line 1815 "y.tab.c"
+#line 1833 "y.tab.c"
     break;
 
   case 38: /* $@17: %empty  */
 #line 122 "yacc.y"
                                                                                                                                                                                                   {append_in_jsFile("(");}
-#line 1821 "y.tab.c"
+#line 1839 "y.tab.c"
     break;
 
   case 39: /* $@18: %empty  */
 #line 122 "yacc.y"
                                                                                                                                                                                                                                          {append_in_jsFile(") ");}
-#line 1827 "y.tab.c"
+#line 1845 "y.tab.c"
     break;
 
   case 40: /* $@19: %empty  */
 #line 122 "yacc.y"
                                                                                                                                                                                                                                                                       {append_in_jsFile(" {\n"); tab_counter++;}
-#line 1833 "y.tab.c"
+#line 1851 "y.tab.c"
     break;
 
   case 41: /* FUNCTION_DECLARATION: VAR $@16 LP $@17 PARAMETERS RP $@18 LC $@19 STATEMENTS RC  */
 #line 122 "yacc.y"
                                                                                                                                                                                                                                                                                                                                {tab_counter--;print_tabs(); append_in_jsFile("}\n"); remove_from_scope_stack(); }
-#line 1839 "y.tab.c"
+#line 1857 "y.tab.c"
     break;
 
   case 45: /* $@20: %empty  */
 #line 133 "yacc.y"
                            { append_in_jsFile("[");}
-#line 1845 "y.tab.c"
+#line 1863 "y.tab.c"
     break;
 
   case 46: /* $@21: %empty  */
 #line 133 "yacc.y"
                                                            { append_in_jsFile(yylval.var_name);}
-#line 1851 "y.tab.c"
+#line 1869 "y.tab.c"
     break;
 
   case 47: /* $@22: %empty  */
 #line 133 "yacc.y"
                                                                                                    { append_in_jsFile("]");}
-#line 1857 "y.tab.c"
+#line 1875 "y.tab.c"
     break;
 
   case 50: /* $@23: %empty  */
 #line 145 "yacc.y"
                            {append_in_jsFile(yylval.var_name);}
-#line 1863 "y.tab.c"
+#line 1881 "y.tab.c"
     break;
 
   case 52: /* $@24: %empty  */
 #line 146 "yacc.y"
                                {append_in_jsFile(", ");}
-#line 1869 "y.tab.c"
+#line 1887 "y.tab.c"
     break;
 
   case 53: /* $@25: %empty  */
 #line 146 "yacc.y"
                                                                   {append_in_jsFile(yylval.var_name);}
-#line 1875 "y.tab.c"
+#line 1893 "y.tab.c"
     break;
 
   case 56: /* $@26: %empty  */
 #line 150 "yacc.y"
                       {append_in_jsFile(yylval.var_name);}
-#line 1881 "y.tab.c"
+#line 1899 "y.tab.c"
     break;
 
   case 58: /* $@27: %empty  */
 #line 151 "yacc.y"
                                {append_in_jsFile(", ");}
-#line 1887 "y.tab.c"
+#line 1905 "y.tab.c"
     break;
 
   case 59: /* $@28: %empty  */
 #line 151 "yacc.y"
                                                              {append_in_jsFile(yylval.var_name);}
-#line 1893 "y.tab.c"
+#line 1911 "y.tab.c"
     break;
 
   case 62: /* $@29: %empty  */
 #line 155 "yacc.y"
                                            {append_in_jsFile("let ");append_in_jsFile(yylval.var_name);}
-#line 1899 "y.tab.c"
+#line 1917 "y.tab.c"
     break;
 
   case 63: /* $@30: %empty  */
 #line 155 "yacc.y"
                                                                                                                     {append_in_jsFile(" = ");}
-#line 1905 "y.tab.c"
+#line 1923 "y.tab.c"
     break;
 
   case 65: /* $@31: %empty  */
 #line 156 "yacc.y"
                                                                       {append_in_jsFile(yylval.var_name);}
-#line 1911 "y.tab.c"
+#line 1929 "y.tab.c"
     break;
 
   case 66: /* $@32: %empty  */
 #line 156 "yacc.y"
                                                                                                                       {append_in_jsFile(" = ");}
-#line 1917 "y.tab.c"
+#line 1935 "y.tab.c"
     break;
 
   case 68: /* EXPRESSION_DECLARATION_OR_NoDECL: VAR  */
 #line 157 "yacc.y"
                                                                       { append_in_jsFile(yylval.var_name);}
-#line 1923 "y.tab.c"
+#line 1941 "y.tab.c"
     break;
 
   case 72: /* $@33: %empty  */
 #line 170 "yacc.y"
                       { append_in_jsFile(yylval.var_name); search_var_in_scope(yylval.var_name); lVarType = lookup_in_table(yylval.var_name);}
-#line 1929 "y.tab.c"
+#line 1947 "y.tab.c"
     break;
 
   case 73: /* $@34: %empty  */
 #line 170 "yacc.y"
                                                                                                                                                           {append_in_jsFile(" = ");}
-#line 1935 "y.tab.c"
+#line 1953 "y.tab.c"
     break;
 
   case 74: /* $@35: %empty  */
 #line 170 "yacc.y"
                                                                                                                                                                                                    {verificarTipo();}
-#line 1941 "y.tab.c"
+#line 1959 "y.tab.c"
     break;
 
   case 75: /* VAR_OR_FUNC_USE: VAR $@33 ASSIGNMENT $@34 EXPRESSION_NT $@35 SEMICOLON_NT  */
 #line 170 "yacc.y"
                                                                                                                                                                                                                                    { append_in_jsFile("\n");}
-#line 1947 "y.tab.c"
+#line 1965 "y.tab.c"
     break;
 
   case 76: /* $@36: %empty  */
 #line 171 "yacc.y"
                                                              {append_in_jsFile(yylval.var_name); agregarFuncion(yylval.var_name,current_data_type,0);}
-#line 1953 "y.tab.c"
+#line 1971 "y.tab.c"
     break;
 
   case 77: /* $@37: %empty  */
 #line 171 "yacc.y"
                                                                                                                                                            { append_in_jsFile("("); }
-#line 1959 "y.tab.c"
+#line 1977 "y.tab.c"
     break;
 
   case 78: /* $@38: %empty  */
 #line 171 "yacc.y"
                                                                                                                                                                                                    { append_in_jsFile(")"); }
-#line 1965 "y.tab.c"
+#line 1983 "y.tab.c"
     break;
 
   case 79: /* VAR_OR_FUNC_USE: VAR $@36 LP $@37 ARGUMENTS RP $@38 SEMICOLON_NT  */
 #line 171 "yacc.y"
                                                                                                                                                                                                                                            { append_in_jsFile("\n");}
-#line 1971 "y.tab.c"
+#line 1989 "y.tab.c"
     break;
 
   case 80: /* $@39: %empty  */
 #line 172 "yacc.y"
                                       { append_in_jsFile(yylval.var_name); search_var_in_scope(yylval.var_name);}
-#line 1977 "y.tab.c"
+#line 1995 "y.tab.c"
     break;
 
   case 81: /* $@40: %empty  */
 #line 172 "yacc.y"
                                                                                                                                                     {append_in_jsFile(" = ");}
-#line 1983 "y.tab.c"
+#line 2001 "y.tab.c"
     break;
 
   case 82: /* $@41: %empty  */
 #line 172 "yacc.y"
                                                                                                                                                                                              {verificarTipo();}
-#line 1989 "y.tab.c"
+#line 2007 "y.tab.c"
     break;
 
   case 83: /* VAR_OR_FUNC_USE: VAR $@39 ARRAY_DIMENSION_WRITE ASSIGNMENT $@40 EXPRESSION_NT $@41 SEMICOLON_NT  */
 #line 172 "yacc.y"
                                                                                                                                                                                                                              {append_in_jsFile("\n");}
-#line 1995 "y.tab.c"
+#line 2013 "y.tab.c"
     break;
 
   case 85: /* $@42: %empty  */
 #line 182 "yacc.y"
               {print_tabs();}
-#line 2001 "y.tab.c"
+#line 2019 "y.tab.c"
     break;
 
   case 86: /* STATEMENTS: $@42 VAR_OR_FUNC_USE STATEMENTS  */
 #line 182 "yacc.y"
                                                         {}
-#line 2007 "y.tab.c"
+#line 2025 "y.tab.c"
     break;
 
   case 87: /* $@43: %empty  */
 #line 183 "yacc.y"
                           {print_tabs();}
-#line 2013 "y.tab.c"
+#line 2031 "y.tab.c"
     break;
 
   case 88: /* STATEMENTS: $@43 IF_BLOCK STATEMENTS  */
 #line 183 "yacc.y"
                                                              {}
-#line 2019 "y.tab.c"
+#line 2037 "y.tab.c"
     break;
 
   case 89: /* $@44: %empty  */
 #line 184 "yacc.y"
                           {print_tabs();}
-#line 2025 "y.tab.c"
+#line 2043 "y.tab.c"
     break;
 
   case 90: /* STATEMENTS: $@44 WHILE_BLOCK STATEMENTS  */
 #line 184 "yacc.y"
                                                                  {}
-#line 2031 "y.tab.c"
+#line 2049 "y.tab.c"
     break;
 
   case 91: /* $@45: %empty  */
 #line 185 "yacc.y"
                           {print_tabs();}
-#line 2037 "y.tab.c"
+#line 2055 "y.tab.c"
     break;
 
   case 92: /* STATEMENTS: $@45 DO_WHILE_BLOCK STATEMENTS  */
 #line 185 "yacc.y"
                                                                     {}
-#line 2043 "y.tab.c"
+#line 2061 "y.tab.c"
     break;
 
   case 93: /* $@46: %empty  */
 #line 186 "yacc.y"
                           {print_tabs();}
-#line 2049 "y.tab.c"
+#line 2067 "y.tab.c"
     break;
 
   case 94: /* STATEMENTS: $@46 FOR_BLOCK STATEMENTS  */
 #line 186 "yacc.y"
                                                               {}
-#line 2055 "y.tab.c"
+#line 2073 "y.tab.c"
     break;
 
   case 95: /* $@47: %empty  */
 #line 187 "yacc.y"
                           {print_tabs();}
-#line 2061 "y.tab.c"
+#line 2079 "y.tab.c"
     break;
 
   case 96: /* STATEMENTS: $@47 PRINTF_SCANF STATEMENTS  */
 #line 187 "yacc.y"
                                                                  {}
-#line 2067 "y.tab.c"
+#line 2085 "y.tab.c"
     break;
 
   case 97: /* $@48: %empty  */
 #line 188 "yacc.y"
               {print_tabs();}
-#line 2073 "y.tab.c"
+#line 2091 "y.tab.c"
     break;
 
   case 98: /* STATEMENTS: $@48 COMMENT STATEMENTS  */
 #line 188 "yacc.y"
                                                 {}
-#line 2079 "y.tab.c"
+#line 2097 "y.tab.c"
     break;
 
   case 99: /* $@49: %empty  */
 #line 189 "yacc.y"
                           {print_tabs();}
-#line 2085 "y.tab.c"
+#line 2103 "y.tab.c"
     break;
 
   case 100: /* STATEMENTS: $@49 RETURN_CONT_BREAK  */
 #line 189 "yacc.y"
                                                            {}
-#line 2091 "y.tab.c"
+#line 2109 "y.tab.c"
     break;
 
   case 102: /* STATEMENTS: %empty  */
 #line 191 "yacc.y"
                     { }
-#line 2097 "y.tab.c"
+#line 2115 "y.tab.c"
     break;
 
   case 103: /* $@50: %empty  */
 #line 199 "yacc.y"
                     {create_scope_2();append_in_jsFile("if (");}
-#line 2103 "y.tab.c"
+#line 2121 "y.tab.c"
     break;
 
   case 104: /* $@51: %empty  */
 #line 199 "yacc.y"
                                                                                      {  append_in_jsFile(") {\n"); tab_counter++;}
-#line 2109 "y.tab.c"
+#line 2127 "y.tab.c"
     break;
 
   case 105: /* $@52: %empty  */
 #line 199 "yacc.y"
                                                                                                                                                  {remove_from_scope_stack();tab_counter--; print_tabs(); append_in_jsFile("}\n");}
-#line 2115 "y.tab.c"
+#line 2133 "y.tab.c"
     break;
 
   case 107: /* $@53: %empty  */
 #line 202 "yacc.y"
                             {create_scope_2();print_tabs(); append_in_jsFile("else if (");}
-#line 2121 "y.tab.c"
+#line 2139 "y.tab.c"
     break;
 
   case 108: /* $@54: %empty  */
 #line 202 "yacc.y"
                                                                                                                    {append_in_jsFile(")");}
-#line 2127 "y.tab.c"
+#line 2145 "y.tab.c"
     break;
 
   case 109: /* $@55: %empty  */
 #line 202 "yacc.y"
                                                                                                                                                {append_in_jsFile("{\n"); tab_counter++;}
-#line 2133 "y.tab.c"
+#line 2151 "y.tab.c"
     break;
 
   case 110: /* $@56: %empty  */
 #line 202 "yacc.y"
                                                                                                                                                                                                        {remove_from_scope_stack();tab_counter--; print_tabs(); append_in_jsFile("}\n"); }
-#line 2139 "y.tab.c"
+#line 2157 "y.tab.c"
     break;
 
   case 112: /* $@57: %empty  */
 #line 203 "yacc.y"
                                            {create_scope_2();print_tabs();tab_counter++;append_in_jsFile("else {\n"); }
-#line 2145 "y.tab.c"
+#line 2163 "y.tab.c"
     break;
 
   case 113: /* ELSEIF_OR_ELSE: ELSE LC $@57 STATEMENTS RC  */
 #line 203 "yacc.y"
                                                                                                                                       {remove_from_scope_stack();tab_counter--; print_tabs(); append_in_jsFile("}\n"); }
-#line 2151 "y.tab.c"
+#line 2169 "y.tab.c"
     break;
 
   case 114: /* ELSEIF_OR_ELSE: %empty  */
 #line 204 "yacc.y"
                                                                                                              {append_in_jsFile("\n");}
-#line 2157 "y.tab.c"
+#line 2175 "y.tab.c"
     break;
 
   case 115: /* $@58: %empty  */
 #line 212 "yacc.y"
                          {create_scope_2();append_in_jsFile("for(");}
-#line 2163 "y.tab.c"
+#line 2181 "y.tab.c"
     break;
 
   case 116: /* $@59: %empty  */
 #line 212 "yacc.y"
                                                                                                  {append_in_jsFile("){\n"); tab_counter++;}
-#line 2169 "y.tab.c"
+#line 2187 "y.tab.c"
     break;
 
   case 117: /* FOR_BLOCK: FOR LP $@58 FOR_BLOCK_PARAMETERS RP LC $@59 STATEMENTS RC  */
 #line 212 "yacc.y"
                                                                                                                                                           {remove_from_scope_stack();tab_counter--; print_tabs(); append_in_jsFile("}\n");}
-#line 2175 "y.tab.c"
+#line 2193 "y.tab.c"
     break;
 
   case 118: /* $@60: %empty  */
 #line 215 "yacc.y"
                        {create_scope_2();append_in_jsFile("while(");}
-#line 2181 "y.tab.c"
+#line 2199 "y.tab.c"
     break;
 
   case 119: /* $@61: %empty  */
 #line 215 "yacc.y"
                                                                                           {append_in_jsFile("){\n"); tab_counter++;}
-#line 2187 "y.tab.c"
+#line 2205 "y.tab.c"
     break;
 
   case 120: /* WHILE_BLOCK: WHILE LP $@60 EXPRESSION_NT RP LC $@61 STATEMENTS RC  */
 #line 215 "yacc.y"
                                                                                                                                                    {remove_from_scope_stack();tab_counter--; print_tabs(); append_in_jsFile("}\n"); }
-#line 2193 "y.tab.c"
+#line 2211 "y.tab.c"
     break;
 
   case 121: /* $@62: %empty  */
 #line 218 "yacc.y"
                         {create_scope_2();append_in_jsFile("do{\n"); tab_counter++;}
-#line 2199 "y.tab.c"
+#line 2217 "y.tab.c"
     break;
 
   case 122: /* $@63: %empty  */
 #line 218 "yacc.y"
                                                                                                             {remove_from_scope_stack();tab_counter--;print_tabs(); append_in_jsFile("}while(");}
-#line 2205 "y.tab.c"
+#line 2223 "y.tab.c"
     break;
 
   case 123: /* $@64: %empty  */
 #line 218 "yacc.y"
                                                                                                                                                                                                                   {append_in_jsFile(")");}
-#line 2211 "y.tab.c"
+#line 2229 "y.tab.c"
     break;
 
   case 124: /* DO_WHILE_BLOCK: DO LC $@62 STATEMENTS RC WHILE LP $@63 EXPRESSION_NT RP $@64 SEMICOLON_NT  */
 #line 218 "yacc.y"
                                                                                                                                                                                                                                                         {append_in_jsFile("\n");}
-#line 2217 "y.tab.c"
+#line 2235 "y.tab.c"
     break;
 
   case 125: /* TERMINAL: NUMBER  */
 #line 221 "yacc.y"
                          { append_in_jsFile( yylval.var_name); anhadirExpresion(ES_INT + 48); }
-#line 2223 "y.tab.c"
+#line 2241 "y.tab.c"
     break;
 
   case 126: /* TERMINAL: QUOTED_CHAR  */
 #line 222 "yacc.y"
                                       { append_in_jsFile(yylval.var_name); anhadirExpresion(ES_CHAR + 48); }
-#line 2229 "y.tab.c"
+#line 2247 "y.tab.c"
     break;
 
   case 127: /* TERMINAL: QUOTED_STRING  */
 #line 223 "yacc.y"
                                         { append_in_jsFile( yylval.var_name); anhadirExpresion(ES_STRING + 48);}
-#line 2235 "y.tab.c"
+#line 2253 "y.tab.c"
     break;
 
   case 128: /* COMMENT: ILCOMMENT  */
 #line 226 "yacc.y"
                             { append_in_jsFile( yylval.var_name); append_in_jsFile("\n");}
-#line 2241 "y.tab.c"
+#line 2259 "y.tab.c"
     break;
 
   case 129: /* COMMENT: MLCOMMENT  */
 #line 227 "yacc.y"
                             { append_in_jsFile(yylval.var_name); }
-#line 2247 "y.tab.c"
+#line 2265 "y.tab.c"
     break;
 
   case 130: /* TYPE: INT  */
 #line 230 "yacc.y"
                                 { (yyval.data_type)=(yyvsp[0].data_type); current_data_type=(yyvsp[0].data_type);  }
-#line 2253 "y.tab.c"
+#line 2271 "y.tab.c"
     break;
 
   case 131: /* TYPE: CHAR  */
 #line 231 "yacc.y"
                                         { (yyval.data_type)=(yyvsp[0].data_type); current_data_type=(yyvsp[0].data_type); 	}
-#line 2259 "y.tab.c"
+#line 2277 "y.tab.c"
     break;
 
   case 132: /* TYPE: FLOAT  */
 #line 232 "yacc.y"
                                         { (yyval.data_type)=(yyvsp[0].data_type); current_data_type=(yyvsp[0].data_type); 	}
-#line 2265 "y.tab.c"
+#line 2283 "y.tab.c"
     break;
 
   case 133: /* TYPE: DOUBLE  */
 #line 233 "yacc.y"
                                         { (yyval.data_type)=(yyvsp[0].data_type); current_data_type=(yyvsp[0].data_type); 	}
-#line 2271 "y.tab.c"
+#line 2289 "y.tab.c"
     break;
 
   case 134: /* TYPE: VOID  */
 #line 234 "yacc.y"
                                         { }
-#line 2277 "y.tab.c"
+#line 2295 "y.tab.c"
     break;
 
   case 135: /* $@65: %empty  */
 #line 241 "yacc.y"
                              {append_in_jsFile(" == ");}
-#line 2283 "y.tab.c"
+#line 2301 "y.tab.c"
     break;
 
   case 137: /* $@66: %empty  */
 #line 242 "yacc.y"
                                          {append_in_jsFile(" != ");}
-#line 2289 "y.tab.c"
+#line 2307 "y.tab.c"
     break;
 
   case 139: /* $@67: %empty  */
 #line 243 "yacc.y"
                                         {append_in_jsFile(" > ");}
-#line 2295 "y.tab.c"
+#line 2313 "y.tab.c"
     break;
 
   case 141: /* $@68: %empty  */
 #line 244 "yacc.y"
                                         {append_in_jsFile(" < ");}
-#line 2301 "y.tab.c"
+#line 2319 "y.tab.c"
     break;
 
   case 143: /* $@69: %empty  */
 #line 245 "yacc.y"
                                          {append_in_jsFile(" <= ");}
-#line 2307 "y.tab.c"
+#line 2325 "y.tab.c"
     break;
 
   case 145: /* $@70: %empty  */
 #line 246 "yacc.y"
                                          {append_in_jsFile(" >= ");}
-#line 2313 "y.tab.c"
+#line 2331 "y.tab.c"
     break;
 
   case 147: /* $@71: %empty  */
 #line 248 "yacc.y"
                                           {append_in_jsFile(" && ");}
-#line 2319 "y.tab.c"
+#line 2337 "y.tab.c"
     break;
 
   case 149: /* $@72: %empty  */
 #line 249 "yacc.y"
                                          {append_in_jsFile(" || ");}
-#line 2325 "y.tab.c"
+#line 2343 "y.tab.c"
     break;
 
   case 151: /* $@73: %empty  */
 #line 250 "yacc.y"
                                {append_in_jsFile("!");}
-#line 2331 "y.tab.c"
+#line 2349 "y.tab.c"
     break;
 
   case 153: /* $@74: %empty  */
 #line 252 "yacc.y"
                                           {append_in_jsFile(" + ");anhadirExpresion('+');}
-#line 2337 "y.tab.c"
+#line 2355 "y.tab.c"
     break;
 
   case 155: /* $@75: %empty  */
 #line 253 "yacc.y"
                                            {append_in_jsFile(" - ");anhadirExpresion('-');}
-#line 2343 "y.tab.c"
+#line 2361 "y.tab.c"
     break;
 
   case 157: /* $@76: %empty  */
 #line 254 "yacc.y"
                                          {append_in_jsFile(" * ");anhadirExpresion('*');}
-#line 2349 "y.tab.c"
+#line 2367 "y.tab.c"
     break;
 
   case 159: /* $@77: %empty  */
 #line 255 "yacc.y"
                                          {append_in_jsFile(" / ");anhadirExpresion('/');}
-#line 2355 "y.tab.c"
+#line 2373 "y.tab.c"
     break;
 
   case 161: /* $@78: %empty  */
 #line 256 "yacc.y"
                                          {append_in_jsFile(" %% ");}
-#line 2361 "y.tab.c"
+#line 2379 "y.tab.c"
     break;
 
   case 163: /* EXPRESSION: EXPRESSION PLUS PLUS  */
 #line 257 "yacc.y"
                                                {append_in_jsFile(" ++");}
-#line 2367 "y.tab.c"
+#line 2385 "y.tab.c"
     break;
 
   case 164: /* $@79: %empty  */
 #line 258 "yacc.y"
                                     {append_in_jsFile("++");}
-#line 2373 "y.tab.c"
+#line 2391 "y.tab.c"
     break;
 
   case 166: /* EXPRESSION: EXPRESSION MINUS MINUS  */
 #line 259 "yacc.y"
                                                  {append_in_jsFile("--");}
-#line 2379 "y.tab.c"
+#line 2397 "y.tab.c"
     break;
 
   case 167: /* $@80: %empty  */
 #line 260 "yacc.y"
                                       {append_in_jsFile("--");}
-#line 2385 "y.tab.c"
+#line 2403 "y.tab.c"
     break;
 
   case 169: /* $@81: %empty  */
 #line 262 "yacc.y"
                              {append_in_jsFile("(");anhadirExpresion('(');}
-#line 2391 "y.tab.c"
+#line 2409 "y.tab.c"
     break;
 
   case 170: /* EXPRESSION: LP $@81 EXPRESSION RP  */
 #line 262 "yacc.y"
                                                                                           {append_in_jsFile(") ");anhadirExpresion(')');}
-#line 2397 "y.tab.c"
+#line 2415 "y.tab.c"
     break;
 
   case 171: /* EXPRESSION: VAR  */
 #line 264 "yacc.y"
                               {append_in_jsFile( yylval.var_name); search_var_in_scope(yylval.var_name); anhadirExpresion(lookup_in_table(yylval.var_name)+ 48);}
-#line 2403 "y.tab.c"
+#line 2421 "y.tab.c"
     break;
 
   case 173: /* SEMICOLON_NT: SEMICOLON  */
 #line 274 "yacc.y"
                         { append_in_jsFile(";");}
-#line 2409 "y.tab.c"
+#line 2427 "y.tab.c"
     break;
 
   case 174: /* SEMICOLON_NT: %empty  */
 #line 275 "yacc.y"
                                       {yyerror("syntax error : missing ';'\n");}
-#line 2415 "y.tab.c"
+#line 2433 "y.tab.c"
     break;
 
   case 175: /* SEMICOLON_OR_ERROR: SEMICOLON  */
 #line 278 "yacc.y"
                               { append_in_jsFile(";");}
-#line 2421 "y.tab.c"
+#line 2439 "y.tab.c"
     break;
 
   case 176: /* SEMICOLON_OR_ERROR: COMA  */
 #line 279 "yacc.y"
                                          { append_in_jsFile(","); append_in_jsFile("\nSYNTAX_ERROR: You put a ',', must be a ';'!\n");}
-#line 2427 "y.tab.c"
+#line 2445 "y.tab.c"
     break;
 
   case 177: /* SEMICOLON_OR_ERROR: COLON  */
 #line 280 "yacc.y"
                                           { append_in_jsFile(":"); append_in_jsFile("\nSYNTAX_ERROR: You put a ':', must be a ';'!\n");}
-#line 2433 "y.tab.c"
+#line 2451 "y.tab.c"
     break;
 
   case 179: /* $@82: %empty  */
 #line 284 "yacc.y"
                                           { append_in_jsFile(yylval.var_name); append_in_jsFile("= ");}
-#line 2439 "y.tab.c"
+#line 2457 "y.tab.c"
     break;
 
   case 181: /* $@83: %empty  */
 #line 285 "yacc.y"
                                                  {append_in_jsFile("= ");}
-#line 2445 "y.tab.c"
+#line 2463 "y.tab.c"
     break;
 
   case 182: /* EXPRESSION_NT: EXPRESSION ASSIGNMENT $@83 EXPRESSION  */
 #line 285 "yacc.y"
                                                                                       {yyerror("Maybe you mean '==' operator?");}
-#line 2451 "y.tab.c"
+#line 2469 "y.tab.c"
     break;
 
   case 183: /* EXPRESSION_NT: %empty  */
 #line 286 "yacc.y"
                                          {yyerror("expected expression before the token");}
-#line 2457 "y.tab.c"
+#line 2475 "y.tab.c"
     break;
 
 
-#line 2461 "y.tab.c"
+#line 2479 "y.tab.c"
 
       default: break;
     }
@@ -2790,10 +2808,10 @@ int main() {
 }
 
 int yyerror(const char *msg) {
+	char error_mensaje[200];
 	extern int yylineno;
-	printf("Parsing failed\nLine number: %d %s\n", yylineno, msg);
-	append_in_jsFile("Parsing failed\nLine number: ");
-	append_in_jsFile(yylineno);append_in_jsFile(" ");append_in_jsFile(msg); append_in_jsFile("\n");
-	success = 0;
+	sprintf(error_mensaje,"\n****************\nParsing failed Line number: %d %s\n****************\n", yylineno, msg);
+	
+	append_in_jsFile(error_mensaje); 
 	return 0;
 }

@@ -1,13 +1,10 @@
-
-int g;
-int e[2];
-int f[1][1];
+#include<stdio.h>
 
 int main(){
+    int arr1[4];
+    char arr2[2];
 
-    int a;
-    int b[2];
-    int c[1][2];
-    b[0] =1;
-    c[0][0] = a;
+    arr1[2] = 2;
+    arr2[1] = 's'; 
+    return 0;
 }
