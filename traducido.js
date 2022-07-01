@@ -1,20 +1,47 @@
-//variable global que 
-//podemos usar en todas partes
-let a;
-function fun1()  {
-	a = 3;
-	//ok
-	let b;
-	// solamente aca se puede usar
-	b = 4;
-	// ok
-}
 function main(){
-	a = 4;
-	// ok
-	b was not declared in the scope 
- = 5;
-	// ERROR
+	let a = 0;
+	let b = 1;
+	//if else if y else
+	if (a == b) {
+		console.log("1");
+	}
+	else if (b > a){
+		console.log("2");
+	}
+	else {
+		console.log("3");
+	}
+	//solo if
+	if (a) {
+		console.log("4");
+	}
+
+	//if else
+	if (a == b) {
+		console.log("5");
+	}
+	else {
+		console.log("6");
+	}
+	//if else if
+	if (a == b) {
+		console.log("7");
+	}
+	else if (a < b){
+		console.log("8");
+	}
+
+	// doble else if
+	if (!(a ++) ) {
+		console.log("9");
+	}
+	else if (a < b){
+		console.log("8");
+	}
+	else if (a > b){
+		console.log("9");
+	}
+
 	return 0;
 }
 main();

@@ -102,7 +102,7 @@
 	char var_list[CANT_VARIABLES][VAR_NAME_LEN];	
 	int string_or_var[CANT_VARIABLES];
 
-	int lVarType = NOVALUE; // Guarda el tipo  de dato de la variable del lado izquierdo de una asignacion (si es -1 es porque no guarda nada)
+	int lVarType = -1; // Guarda el tipo  de dato de la variable del lado izquierdo de una asignacion (si es -1 es porque no guarda nada)
 	char expresion[200]; // para guardar los tipos de datos de la expresion del lado derecho  es decir 2+2 se guardaria '0' ya que es un int
 	int topeExpresion = 0; // el tope o indice actual del vector expresion
 	//extern int *yytext;
@@ -1954,13 +1954,13 @@ yyreduce:
 
   case 74: /* $@35: %empty  */
 #line 170 "yacc.y"
-                                                                                                                                                                                                   {verificarTipo();}
+                                                                                                                                                                                                   {verificarTipo(); }
 #line 1959 "y.tab.c"
     break;
 
   case 75: /* VAR_OR_FUNC_USE: VAR $@33 ASSIGNMENT $@34 EXPRESSION_NT $@35 SEMICOLON_NT  */
 #line 170 "yacc.y"
-                                                                                                                                                                                                                                   { append_in_jsFile("\n");}
+                                                                                                                                                                                                                                    { append_in_jsFile("\n");}
 #line 1965 "y.tab.c"
     break;
 
@@ -2675,15 +2675,33 @@ yyreturnlab:
 
 
 void verificarTipo(){
-	if(lVarType == NOVALUE){
+	if(lVarType == -1){
 		lVarType = current_data_type; 
-	}else{
-		lVarType = lVarType;
 	}
 
-	/* while(topeExpresion > 0){
+	int ladoDerecho = -1;
+	
+	for(int indice=0; indice<200; indice++){
+		if(expresion[indice]=='n'){
+			if(indice == 3){
+				ladoDerecho = verificarLadoDerecho(expresion[0], expresion[2], expresion[1]);
+			}
+			else{
+				ladoDerecho = -99; 
+			}
+			break;
+		}
+	}
 
-	} */
+	if(ladoDerecho == -1){
+		yyerror("Se asigno un tipo de dato no compatible.\n");
+	}
+	
+
+	
+	cerar_expression();
+	
+
 	
 }
 
@@ -2798,8 +2816,16 @@ void print_tabs() {
 	return;
 }
 
+void cerar_expression(){
+	for (int i = 0; i< 200; i++){
+		expresion[i]= 'n';
+	}
+	topeExpresion = 0;
+}
+
 int main() {
 	// Limpiamos el archivo donde queda la traduccion
+	cerar_expression();
 	js_file = fopen(JSFILE, "w");
 	fclose(js_file);
 	yyparse();

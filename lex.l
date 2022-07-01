@@ -108,8 +108,8 @@
 
 
   /* string in single quote and double quotes*/
-\"[^'"]*\"				{strcpy(yylval.var_name, yytext); return QUOTED_STRING;}
-'[^']*'					{strcpy(yylval.var_name, yytext); return QUOTED_CHAR;}
+\"[^"]*\"            {strcpy(yylval.var_name, yytext);return QUOTED_STRING;}
+'[^']*'              {strcpy(yylval.var_name, yytext);return QUOTED_CHAR;}
 
 
   /* for variables*/
